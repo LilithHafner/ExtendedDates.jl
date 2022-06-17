@@ -3,11 +3,16 @@ uuid = "93a61fde-43d9-4edb-99bc-90b7d11dc23d"
 authors = ["Lilith Hafner <Lilith.Hafner@gmail.com> and contributors"]
 version = "0.0.0"
 
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+
 [compat]
 julia = "1.6"
 
 [extras]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["BenchmarkTools", "Test"]
