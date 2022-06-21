@@ -62,7 +62,7 @@ function show(io::IO, p::UTInstant)
 end
 
 # Undated
-struct Undated
+struct Undated <: Dates.AbstractTime
     value::Int
 end
 isless(a::Undated, b::Undated) = isless(a.value, b.value)
