@@ -90,4 +90,5 @@ end
         @test Dates.value(p) == 0
         @test Date(p) == ExtendedDates.epoch(P)
     end
+    @test Dates.value(Undated(0)) == 0
 end
