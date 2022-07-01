@@ -2,17 +2,20 @@ module ExtendedDates
 
 using Reexport
 @reexport using Dates
+using Dates: value
 
-import Base: +, -, isfinite, isless, :, print, show
-import Dates: Date, year
+import Base: +, -, isfinite, isless, :, print, show, ==, hash, convert, promote_rule
+import Dates: Date, year, periodisless, toms, days, _units, periodisless
 
-export period, frequency, subperiod, Undated
+export period, frequency, subperiod, Undated, Semester
+
+include("Semesters.jl")
 
 # Not `using Dates: UTInstant` to avoid type piracy
 struct UTInstant{P<:Period} <: Dates.Instant
     periods::P
 end
-const YearPeriods = Union{Month, Quarter, Year}
+const YearPeriods = Union{Month, Quarter, Semester, Year}
 const DayPeriods = Union{Week, Day}
 
 # Defining the epochs
@@ -47,6 +50,7 @@ isfinite(a::UTInstant) = true # Due to julia bug, fix in #45646
 (:)(start::UTInstant{P}, stop::UTInstant{P}) where {P} = start:P(1):stop
 
 # print (for conversion to human readable/standard form string)
+prefix(::Type{Semester}) = 'S'
 prefix(::Type{Quarter}) = 'Q'
 prefix(::Type{Week}) = 'W'
 prefix(::Type{Day}) = 'D'
