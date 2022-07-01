@@ -2,10 +2,9 @@ module ExtendedDates
 
 using Reexport
 @reexport using Dates
-using Dates: value
 
 import Base: +, -, isfinite, isless, :, print, show, ==, hash, convert, promote_rule
-import Dates: Date, year, periodisless, toms, days, _units, periodisless
+import Dates: Date, year, periodisless, toms, days, _units, periodisless, value
 
 export period, frequency, subperiod, Undated, Semester
 
@@ -15,6 +14,7 @@ include("Semesters.jl")
 struct UTInstant{P<:Period} <: Dates.Instant
     periods::P
 end
+value(a::UTInstant) = value(a.periods)
 const YearPeriods = Union{Month, Quarter, Semester, Year}
 const DayPeriods = Union{Week, Day}
 
@@ -27,7 +27,7 @@ period(P::Type{<:Period}, year::Integer) = period(P, year, 1)
 period(P::Type{<:YearPeriods}, year::Integer, subperiod::Integer) = 
     UTInstant(P(Year(1) ÷ P(1) * year + subperiod - 1))
 period(P::Type{<:DayPeriods}, year::Integer, subperiod::Integer) =
-    UTInstant(P((Date(year) - epoch(P)) ÷ P(1) + subperiod))
+    UTInstant(P((Date(year) - epoch(P)) ÷ P(1) + subperiod - 1))
 
 # Conversion to Date to calculate year and subperiod
 Date(p::UTInstant) = Date(0) + p.periods
@@ -36,7 +36,7 @@ Date(p::UTInstant{Week}) = Date(0, 1, 3) + p.periods
 # Fallback accessors for frequency, year, subperiod
 frequency(::UTInstant{P}) where P <: Period = oneunit(P)
 year(p::UTInstant) = year(Date(p))
-subperiod(p::UTInstant) = cld((Date(p) - floor(Date(p), Year)), frequency(p))
+subperiod(p::UTInstant) = cld((Date(p) - floor(Date(p), Year)), frequency(p)) + 1
 
 # Avoid conversion to Date for Year based periods
 year(p::UTInstant{<:YearPeriods}) = p.periods ÷ Year(1)
@@ -69,6 +69,7 @@ end
 struct Undated <: Dates.AbstractTime
     value::Int
 end
+value(a::Undated) = a.value
 isless(a::Undated, b::Undated) = isless(a.value, b.value)
 (+)(a::Undated, b::Integer) = Undated(a.value + b)
 (-)(a::Undated, b::Integer) = Undated(a.value - b)

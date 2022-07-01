@@ -1,5 +1,6 @@
 using ExtendedDates
 using Test, BenchmarkTools
+using InteractiveUtils: subtypes
 
 ### Represent periods (time intervals) of different frequencies: year 2022, 2nd quarter of 200, …
 ### Constructors with (year, subperiod, frequency)
@@ -65,8 +66,8 @@ end
 @testset "repr" begin
     @test endswith(repr(year_2022), "UTInstant(Year(2022))")
     @test endswith(repr(second_quarter_of_200), "UTInstant(Quarter(801))")
-    @test endswith(repr(third_week_of_1935), "UTInstant(Week(100966))")
-    @test endswith(repr(hundredth_day_of_year_54620), "UTInstant(Day(19949645))")
+    @test endswith(repr(third_week_of_1935), "UTInstant(Week(100965))")
+    @test endswith(repr(hundredth_day_of_year_54620), "UTInstant(Day(19949644))")
     @test endswith(repr(second_semester_of_2022), "UTInstant(Semester(4045))")
     @test endswith(repr(undated_12), "Undated(12)")
 end
@@ -89,4 +90,12 @@ end
     @test (@belapsed x + Week(1) setup = (x=$third_week_of_1935) samples=10 evals=100) < threshold
     @test (@belapsed x + Day(1) setup = (x=$hundredth_day_of_year_54620) samples=10 evals=100) < threshold
     @test (@belapsed x + Semester(1) setup = (x=$second_semester_of_2022) samples=10 evals=100) < threshold
+end
+
+@testset "zeros" begin
+    for P in subtypes(DatePeriod)
+        p = period(P, 0, 1)
+        @test Dates.value(p) == 0
+        @test_skip Date(p) == ExtendedDates.epoch(P)
+    end
 end
