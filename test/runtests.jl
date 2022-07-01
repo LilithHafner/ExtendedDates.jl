@@ -1,5 +1,5 @@
 using ExtendedDates
-using Test, BenchmarkTools
+using Test
 using InteractiveUtils: subtypes
 
 ### Represent periods (time intervals) of different frequencies: year 2022, 2nd quarter of 200, …
@@ -79,17 +79,6 @@ end
     @test Base.summarysize(third_week_of_1935) <= sizeof(Int)
     @test Base.summarysize(hundredth_day_of_year_54620) <= sizeof(Int)
     @test Base.summarysize(second_semester_of_2022) <= sizeof(Int)
-end
-
-@testset "time" begin
-    baseline = @belapsed x + 1 setup = (x=1) samples=10 evals=100
-    @test baseline < 1e-8 # 1+1 should take less than ten nanoseconds on a development machine
-    threshold = 2baseline # to accommodate noise
-    @test (@belapsed x + Year(1) setup = (x=$year_2022) samples=10 evals=100) < threshold
-    @test (@belapsed x + Quarter(1) setup = (x=$second_quarter_of_200) samples=10 evals=100) < threshold
-    @test (@belapsed x + Week(1) setup = (x=$third_week_of_1935) samples=10 evals=100) < threshold
-    @test (@belapsed x + Day(1) setup = (x=$hundredth_day_of_year_54620) samples=10 evals=100) < threshold
-    @test (@belapsed x + Semester(1) setup = (x=$second_semester_of_2022) samples=10 evals=100) < threshold
 end
 
 @testset "zeros" begin
