@@ -62,6 +62,9 @@ end
     @test string(hundredth_day_of_year_54620) == "54620-D100"
     @test string(second_semester_of_2022) == "2022-S2"
     @test string(undated_12) == "Undated(12)"
+    @test string(period(Month, 1729, 3)) == "1729-03"
+    @test string(period(Month, 1729, 12)) == "1729-12"
+    @test string(period(Month, 1729, 13)) == "1730-01"
 end
 @testset "repr" begin
     @test endswith(repr(year_2022), "UTInstant(Year(2022))")
