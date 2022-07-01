@@ -83,7 +83,7 @@ end
 @testset "time" begin
     baseline = @belapsed x + 1 setup = (x=1) samples=10 evals=100
     @test baseline < 1e-8 # 1+1 should take less than ten nanoseconds on a development machine
-    threshold = 1.2baseline # to accommodate noise
+    threshold = 2baseline # to accommodate noise
     @test (@belapsed x + Year(1) setup = (x=$year_2022) samples=10 evals=100) < threshold
     @test (@belapsed x + Quarter(1) setup = (x=$second_quarter_of_200) samples=10 evals=100) < threshold
     @test (@belapsed x + Week(1) setup = (x=$third_week_of_1935) samples=10 evals=100) < threshold
