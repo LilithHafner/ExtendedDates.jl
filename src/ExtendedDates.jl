@@ -6,7 +6,8 @@ using Reexport
 import Base: +, -, isfinite, isless, :, print, show, ==, hash, convert, promote_rule
 import Dates: Date, year, periodisless, toms, days, _units, periodisless, value
 
-export period, frequency, subperiod, Undated, Semester
+export period, frequency, subperiod, Undated,
+    Semester, semesterofyear, dayofsemester, firstdayofsemester, lastdayofsemester
 
 include("Semesters.jl")
 
@@ -15,19 +16,17 @@ struct UTInstant{P<:Period} <: Dates.Instant
     periods::P
 end
 value(a::UTInstant) = value(a.periods)
-const YearPeriods = Union{Month, Quarter, Semester, Year}
-const DayPeriods = Union{Week, Day}
+const YearPeriod = Union{Month, Quarter, Semester, Year}
 
 # Defining the epochs
 epoch(::Type{<:Period}) = Date(0)
 epoch(::Type{Week}) = Date(0, 1, 3) # Monday
 
 # Non overflow checking constructors
-period(P::Type{<:Period}, year::Integer) = period(P, year, 1)
-period(P::Type{<:YearPeriods}, year::Integer, subperiod::Integer) = 
-    UTInstant(P(Year(1) ÷ P(1) * year + subperiod - 1))
-period(P::Type{<:DayPeriods}, year::Integer, subperiod::Integer) =
+period(P::Type{<:Period}, year::Integer, subperiod::Integer=1) =
     UTInstant(P((Date(year) - epoch(P)) ÷ P(1) + subperiod - 1))
+period(P::Type{<:YearPeriod}, year::Integer, subperiod::Integer=1) =
+    UTInstant(P(Year(1) ÷ P(1) * year + subperiod - 1))
 
 # Conversion to Date to calculate year and subperiod
 Date(p::UTInstant) = Date(0) + p.periods
@@ -39,8 +38,8 @@ year(p::UTInstant) = year(Date(p))
 subperiod(p::UTInstant) = cld((Date(p) - floor(Date(p), Year)), frequency(p)) + 1
 
 # Avoid conversion to Date for Year based periods
-year(p::UTInstant{<:YearPeriods}) = p.periods ÷ Year(1)
-subperiod(p::UTInstant{<:YearPeriods}) = (p.periods % Year(1)) ÷ frequency(p) + 1
+year(p::UTInstant{<:YearPeriod}) = p.periods ÷ Year(1)
+subperiod(p::UTInstant{<:YearPeriod}) = (p.periods % Year(1)) ÷ frequency(p) + 1
 
 # Arithmetic and comparison (for ranges)
 isless(a::UTInstant, b::UTInstant) = isless(a.periods, b.periods)

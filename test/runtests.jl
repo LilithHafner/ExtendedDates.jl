@@ -96,6 +96,6 @@ end
     for P in subtypes(DatePeriod)
         p = period(P, 0, 1)
         @test Dates.value(p) == 0
-        @test_skip Date(p) == ExtendedDates.epoch(P)
+        @test Date(p) == ExtendedDates.epoch(P)
     end
 end

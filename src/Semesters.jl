@@ -1,7 +1,11 @@
+## types.jl
 struct Semester <: DatePeriod
     value::Int64
     Semester(v::Number) = new(v)
 end
+
+
+## periods.jl
 
 # The style of this let statement is a bit odd because 
 # the body is a verbatim copy of Dates/src/periods.jl
@@ -64,4 +68,92 @@ hash(x::Semester, h::UInt) = hash(3 * value(x), h + otherperiod_seed(x))
 toms(c::Semester) = 86400000.0 * 182.62125 * value(c)
 days(c::Semester) = 182.62125 * value(c)
 
-# TODO add fuller support for interaction between Semesters and other Periods
+
+## accessors.jl
+"""
+    semester(dt::TimeType) -> Int64
+
+The semester of a `Date` or `DateTime` as an [`Int64`](@ref).
+"""
+semester(days) = month(days) < 7 ? 1 : 2
+semester(dt::TimeType) = semester(days(dt))
+
+
+## adjusters.jl
+Base.trunc(dt::Date, ::Type{Semester}) = firstdayofsemester(dt)
+Base.trunc(dt::DateTime, ::Type{Semester}) = DateTime(trunc(Date(dt), Semester))
+
+"""
+    firstdayofsemester(dt::TimeType) -> TimeType
+
+Adjusts `dt` to the first day of its semester.
+
+# Examples
+```jldoctest
+julia> ExtendedDates.firstdayofsemester(DateTime("1996-05-20"))
+1996-01-01T00:00:00
+
+julia> ExtendedDates.firstdayofsemester(DateTime("1996-08-20"))
+1996-07-01T00:00:00
+```
+"""
+function firstdayofsemester(dt::Date)
+    y,m = yearmonth(dt)
+    mm = m < 7 ? 1 : 7
+    return Date(y, mm, 1)
+end
+firstdayofsemester(dt::DateTime) = DateTime(firstdayofsemester(Date(dt)))
+
+"""
+    lastdayofsemester(dt::TimeType) -> TimeType
+
+Adjusts `dt` to the last day of its semester.
+
+# Examples
+```jldoctest
+julia> ExtendedDates.lastdayofsemester(DateTime("1996-05-20"))
+1996-06-30T00:00:00
+
+julia> ExtendedDates.lastdayofsemester(DateTime("1996-08-20"))
+1996-12-31T00:00:00
+```
+"""
+function lastdayofsemester(dt::Date)
+    y,m = yearmonth(dt)
+    mm, d = m < 7 ? (6, 30) : (12, 31)
+    return Date(y, mm, d)
+end
+lastdayofsemester(dt::DateTime) = DateTime(lastdayofsemester(Date(dt)))
+
+
+## arithmetic.jl
+(+)(x::Date, y::Semester) = x + Month(y)
+(-)(x::Date, y::Semester) = x - Month(y)
+(+)(x::DateTime, y::Semester) = x + Month(y)
+(-)(x::DateTime, y::Semester) = x - Month(y)
+
+
+## query.jl
+"""
+    semesterofyear(dt::TimeType) -> Int
+
+Return the semester that `dt` resides in. Range of value is 1:4.
+"""
+semesterofyear(dt::TimeType) = semester(dt)
+
+
+const SEMESTERDAYS = (0, 31, 59, 90, 120, 151, 0, 31, 62, 92, 123, 153)
+
+"""
+    dayofquarter(dt::TimeType) -> Int
+
+Return the day of the current quarter of `dt`. Range of value is 1:92.
+"""
+function dayofquarter(dt::TimeType)
+    (y, m, d) = yearmonthday(dt)
+    return SEMESTERDAYS[m] + d + (2 < m < 7 && isleapyear(y))
+end
+
+
+## rounding.jl
+Base.floor(dt::Date, p::Semester) = floor(dt, Month(p))
