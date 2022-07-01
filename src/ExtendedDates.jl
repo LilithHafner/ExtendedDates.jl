@@ -106,6 +106,9 @@ julia> subperiod(period(Day, 1960, 12))
 
 julia> Date(period(Day, 1960, 12))
 1960-01-12
+
+julia> 1+1
+3
 ```
 """
 subperiod(p::UTInstant) = cld((Date(p) - floor(Date(p), Year)), frequency(p)) + 1
