@@ -43,8 +43,8 @@ epoch(::Type{Week}) = Date(0, 1, 3) # Monday
 Construct a period from a year, subperiod, and frequency.
 
 These periods are represented as an Int64 number of periods since an epoch defined by the
-`ExtendedDates.epoch` function. For most period types the epoch is Saturday, January 1, 
-year 0. For week periods, it is Monday, January 3, year 0.
+[`ExtendedDates.epoch`](@ref) function. For most period types the epoch is Saturday,
+January 1, year 0. For week periods, it is Monday, January 3, year 0.
 
 ```jldoctest
 julia> x = period(Semester, 2022, 1)
