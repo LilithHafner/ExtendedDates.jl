@@ -65,7 +65,9 @@ end
 otherperiod_seed(x) = iszero(value(x)) ? Dates.zero_or_fixedperiod_seed : Dates.nonzero_otherperiod_seed
 hash(x::Semester, h::UInt) = hash(3 * value(x), h + otherperiod_seed(x))
 
-toms(c::Semester) = 86400000.0 * 182.62125 * value(c)
+if VERSION < v"1.9.0-DEV.902"
+    @eval toms(c::Semester) = 86400000.0 * 182.62125 * value(c)
+end
 days(c::Semester) = 182.62125 * value(c)
 
 
