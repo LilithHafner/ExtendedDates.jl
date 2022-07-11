@@ -148,4 +148,6 @@ isless(a::Undated, b::Undated) = isless(a.value, b.value)
 (-)(a::Undated, b::Undated) = a.value - b.value
 isfinite(a::Undated) = true # Due to julia bug, fix in #45646
 
+include("io.jl")
+
 end

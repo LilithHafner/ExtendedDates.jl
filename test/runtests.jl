@@ -92,3 +92,21 @@ end
     end
     @test Dates.value(Undated(0)) == 0
 end
+
+@testset "additional parsing" begin
+    @test parse(Date, "1984-Q1", dateformat"y-Qq") == Date(1984, 1, 1)
+    @test parse(Date, "1984-Q2", dateformat"y-Qq") == Date(1984, 4, 1)
+    @test parse(Date, "1984-Q3", dateformat"y-Qq") == Date(1984, 7, 1)
+    @test parse(Date, "1984-Q4", dateformat"y-Qq") == Date(1984, 10, 1)
+    @test_throws ArgumentError parse(Date, "1984-Q5", dateformat"y-Qq")
+
+    @test_throws ArgumentError parse(Date, "1984-S0", dateformat"y-\St")
+    @test parse(Date, "1984-S1", dateformat"y-\St") == Date(1984, 1, 1)
+    @test parse(Date, "1984-S2", dateformat"y-\St") == Date(1984, 7, 1)
+    @test_throws ArgumentError parse(Date, "1984-S3", dateformat"y-\St")
+
+    @test parse(Date, "1984-W1", dateformat"y-Ww") == Date(1984, 1, 1)
+    @test parse(Date, "1984-W2", dateformat"y-Ww") == Date(1984, 1, 8)
+    @test_broken parse(Date, "1984-W12", dateformat"y-Ww")
+    @test_throws ArgumentError parse(Date, "1984-W53", dateformat"y-Ww")
+end
