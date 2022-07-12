@@ -63,10 +63,14 @@ julia> Date(period(Day, 0))
 0000-01-01
 ```
 """
-period(P::Type{<:Period}, year::Integer, subperiod::Integer=1) =
+period(P::Type{<:Period}, year::Integer, subperiod::Integer = 1) =
+    UTInstant{P}(year, subperiod)
+
+UTInstant{P}(year, subperiod) where P =
     UTInstant(P((Date(year) - epoch(P)) ÷ P(1) + subperiod - 1))
-period(P::Type{<:YearPeriod}, year::Integer, subperiod::Integer=1) =
+UTInstant{P}(year, subperiod) where P <: YearPeriod =
     UTInstant(P(Year(1) ÷ P(1) * year + subperiod - 1))
+
 
 # Conversion to Date to calculate year and subperiod
 Date(p::UTInstant) = Date(0) + p.periods
