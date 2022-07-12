@@ -10,6 +10,7 @@ third_week_of_1935 = period(Week, 1935, 3)
 hundredth_day_of_year_54620 = period(Day, 54620, 100)
 second_semester_of_2022 = period(Semester, 2022, 2)
 undated_12 = Undated(12)
+@test_throws ArgumentError("Month: 13 out of range (1:12)") period(Month, 1729, 13)
 
 ### Periods can be identified by (year, subperiod, frequency)
 
@@ -19,7 +20,7 @@ undated_12 = Undated(12)
     @test year(third_week_of_1935) == 1935
     @test year(hundredth_day_of_year_54620) == 54620
     @test year(second_semester_of_2022) == 2022
-    @test_throws MethodError year(undated_12)
+    @test_broken year(undated_12) == 12 # years(x::Int) assumes x is measured in days. We want an error. It would take a breaking changed to stdlib to fix this. TODO: try
 end
 
 @testset "subperiod" begin
@@ -37,7 +38,7 @@ end
     @test frequency(third_week_of_1935) == Week(1)
     @test frequency(hundredth_day_of_year_54620) == Day(1)
     @test frequency(second_semester_of_2022) == Semester(1)
-    @test_throws MethodError frequency(undated_12)
+    @test frequency(undated_12) === Int64(1)
 end
 
 # Range operations on dates
@@ -56,32 +57,40 @@ end
 
 # Print/string/display/show
 @testset "string" begin
-    @test string(year_2022) == "2022"
-    @test string(second_quarter_of_200) == "200-Q2"
-    @test string(third_week_of_1935) == "1935-W3"
-    @test string(hundredth_day_of_year_54620) == "54620-D100"
-    @test string(second_semester_of_2022) == "2022-S2"
-    @test string(undated_12) == "Undated(12)"
-    @test string(period(Month, 1729, 3)) == "1729-03"
-    @test string(period(Month, 1729, 12)) == "1729-12"
-    @test_throws ArgumentError("Month: 13 out of range (1:12)") string(period(Month, 1729, 13))
+    @test Dates.format(year_2022) == "2022"
+    @test Dates.format(second_quarter_of_200) == "200-Q2"
+    @test Dates.format(third_week_of_1935) == "1935-W3"
+    @test Dates.format(hundredth_day_of_year_54620) == "54620-D100"
+    @test Dates.format(second_semester_of_2022) == "2022-S2"
+    @test_throws MethodError Dates.format(undated_12)
+    @test Dates.format(period(Month, 1729, 3)) == "1729-03"
+    @test Dates.format(period(Month, 1729, 12)) == "1729-12"
+
+    @test ExtendedDates.format(year_2022) == "2022"
+    @test ExtendedDates.format(second_quarter_of_200) == "200-Q2"
+    @test ExtendedDates.format(third_week_of_1935) == "1935-W3"
+    @test ExtendedDates.format(hundredth_day_of_year_54620) == "54620-D100"
+    @test ExtendedDates.format(second_semester_of_2022) == "2022-S2"
+    @test ExtendedDates.format(undated_12) == "12"
+    @test ExtendedDates.format(period(Month, 1729, 3)) == "1729-03"
+    @test ExtendedDates.format(period(Month, 1729, 12)) == "1729-12"
 end
 @testset "repr" begin
-    @test endswith(repr(year_2022), "UTInstant(Year(2022))")
-    @test endswith(repr(second_quarter_of_200), "UTInstant(Quarter(801))")
-    @test endswith(repr(third_week_of_1935), "UTInstant(Week(100966))")
-    @test endswith(repr(hundredth_day_of_year_54620), "UTInstant(Day(19949644))")
-    @test endswith(repr(second_semester_of_2022), "UTInstant(Semester(4045))")
-    @test endswith(repr(undated_12), "Undated(12)")
+    @test endswith(repr(year_2022), "Year(2022)")
+    @test endswith(repr(second_quarter_of_200), "Quarter(801)")
+    @test endswith(repr(third_week_of_1935), "Week(100966)")
+    @test endswith(repr(hundredth_day_of_year_54620), "Day(19949644)")
+    @test endswith(repr(second_semester_of_2022), "Semester(4045)")
+    @test repr(undated_12) == "12"
 end
 
-# Efficient (no overhead over Int)
+# Efficient (no overhead over Int64)
 @testset "space" begin
-    @test Base.summarysize(year_2022) <= sizeof(Int)
-    @test Base.summarysize(second_quarter_of_200) <= sizeof(Int)
-    @test Base.summarysize(third_week_of_1935) <= sizeof(Int)
-    @test Base.summarysize(hundredth_day_of_year_54620) <= sizeof(Int)
-    @test Base.summarysize(second_semester_of_2022) <= sizeof(Int)
+    @test Base.summarysize(year_2022) <= sizeof(Int64)
+    @test Base.summarysize(second_quarter_of_200) <= sizeof(Int64)
+    @test Base.summarysize(third_week_of_1935) <= sizeof(Int64)
+    @test Base.summarysize(hundredth_day_of_year_54620) <= sizeof(Int64)
+    @test Base.summarysize(second_semester_of_2022) <= sizeof(Int64)
 end
 
 @testset "zeros" begin
@@ -90,7 +99,6 @@ end
         @test Dates.value(p) == 0
         @test Date(p) == ExtendedDates.epoch(P)
     end
-    @test Dates.value(Undated(0)) == 0
 end
 
 @testset "additional parsing" begin

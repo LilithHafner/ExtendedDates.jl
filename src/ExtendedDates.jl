@@ -11,11 +11,6 @@ export period, frequency, subperiod, Undated,
 
 include("Semesters.jl")
 
-# Not `using Dates: UTInstant` to avoid type piracy
-struct UTInstant{P<:Period} <: Dates.Instant
-    periods::P
-end
-value(a::UTInstant) = value(a.periods)
 const YearPeriod = Union{Month, Quarter, Semester, Year}
 
 # Defining the epochs
@@ -63,51 +58,36 @@ julia> Date(period(Day, 0))
 0000-01-01
 ```
 """
-period(P::Type{<:Period}, year::Integer, subperiod::Integer = 1, unchecked...) =
-    UTInstant{P}(year, subperiod, unchecked...)
-
-function UTInstant{P}(year, subperiod) where P
-    err = validargs(UTInstant{P}, year, subperiod)
+function period(P::Type{<:Period}, year::Integer, subperiod::Integer = 1)
+    err = validargs(P, year, subperiod)
     err === nothing || throw(err)
-    return UTInstant{P}(year, subperiod, nothing)
+    return period(P, year, subperiod, nothing)
 end
 
 periodsinyear(P::Type{<:YearPeriod}) = Year(1) ÷ P(1)
+period(P::Type{<:Period}, year, subperiod, unchecked) = 
+    P(cld((Date(year) - epoch(P)), P(1)) + subperiod - 1)
+period(P::Type{<: YearPeriod}, year, subperiod, unchecked) =
+    P(periodsinyear(P) * year + subperiod - 1)
 
-UTInstant{P}(year, subperiod, unchecked::Nothing) where P =
-    UTInstant(P(cld((Date(year) - epoch(P)), P(1)) + subperiod - 1))
-UTInstant{P}(year, subperiod, unchecked::Nothing) where P <: YearPeriod =
-    UTInstant(P(periodsinyear(P) * year + subperiod - 1))
-
-function validargs(::Type{UTInstant{P}}, ::Int64, p::Int64) where P <: YearPeriod
+function validargs(P::Type{<:YearPeriod}, ::Int64, p::Int64)
     0 < p <= periodsinyear(P) || return ArgumentError("$P: $p out of range (1:$(periodsinyear(P)))")
     nothing
 end
-function validargs(::Type{UTInstant{Day}}, y::Int64, p::Int64)
+function validargs(::Type{Day}, y::Int64, p::Int64)
     0 < p <= daysinyear(y) || return ArgumentError("$P: $p out of range (1:$(daysinyear(P))) for $y")
     nothing
 end
-function validargs(T::Type{UTInstant{P}}, y::Int64, p::Int64) where P <: Period # TODO inefficient
-    year(Date(T(y, p, nothing))) == year(Date(T(y, 1, nothing))) || return ArgumentError("$P: $p out of range for $y")
+function validargs(P::Type{<:Period}, y::Int64, p::Int64) # TODO inefficient
+    year(Date(period(P, y, p, nothing))) == year(Date(period(P, y, 1, nothing))) || return ArgumentError("$P: $p out of range for $y")
     nothing
 end
 
 # Conversion to Date to calculate year and subperiod
-Date(p::UTInstant) = Date(0) + p.periods
-Date(p::UTInstant{Week}) = Date(0, 1, 3) + p.periods
+Date(p::P) where P <: Period = epoch(P) + p
 
 # Fallback accessors for frequency, year, subperiod
-"""
-    frequency(::UTInstant{<:Period})
-
-The frequency of a period.
-
-```jldoctest
-julia> frequency(period(Year, 1960))
-1 year
-```
-"""
-frequency(::UTInstant{P}) where P <: Period = oneunit(P)
+const frequency = oneunit
 """
     year(::UTInstant{<:Period})
 
@@ -118,7 +98,7 @@ julia> year(period(Day, 1960, 12))
 1960
 ```
 """
-year(p::UTInstant) = year(Date(p))
+year(p::Period) = year(Date(p))
 """
     year(::UTInstant{<:Period})
 
@@ -132,45 +112,33 @@ julia> Date(period(Day, 1960, 12))
 1960-01-12
 ```
 """
-subperiod(p::UTInstant) = fld((Date(p) - floor(Date(p), Year)), frequency(p)) + 1
+subperiod(p::Period) = fld((Date(p) - floor(Date(p), Year)), frequency(p)) + 1
 
 # Avoid conversion to Date for Year based periods
-year(p::UTInstant{<:YearPeriod}) = fld(p.periods, Year(1))
-subperiod(p::UTInstant{<:YearPeriod}) = (rem(p.periods, Year(1), RoundDown)) ÷ frequency(p) + 1
-
-# Arithmetic and comparison (for ranges)
-isless(a::UTInstant, b::UTInstant) = isless(a.periods, b.periods)
-(+)(a::UTInstant, b::Period) = UTInstant(a.periods + b)
-(-)(a::UTInstant, b::Period) = UTInstant(a.periods - b)
-isfinite(a::UTInstant) = true # Due to julia bug, fix in #45646
-(:)(start::UTInstant{P}, stop::UTInstant{P}) where {P} = start:P(1):stop
+year(p::YearPeriod) = fld(p, Year(1))
+subperiod(p::YearPeriod) = (rem(p, Year(1), RoundDown)) ÷ frequency(p) + 1
 
 # print (for conversion to human readable/standard form string)
 prefix(::Type{Semester}) = 'S'
 prefix(::Type{Quarter}) = 'Q'
 prefix(::Type{Week}) = 'W'
 prefix(::Type{Day}) = 'D'
-print(io::IO, p::UTInstant{P}) where P = print(io, year(p), '-', prefix(P), subperiod(p))
-print(io::IO, p::UTInstant{Year}) = print(io, year(p))
-print(io::IO, p::UTInstant{Month}) = print(io, year(p), '-', lpad(subperiod(p), 2, '0'))
-
-# show
-function show(io::IO, p::UTInstant) 
-    print(io, UTInstant, '(')
-    show(io, p.periods)
-    print(io, ')')
+prefix(P::Period) = prefix(typeof(P))
+format(io::IO, p::Period) = print(io, year(p), '-', prefix(p), subperiod(p))
+format(io::IO, p::Year) = print(io, year(p))
+format(io::IO, p::Month) = print(io, year(p), '-', lpad(subperiod(p), 2, '0'))
+function format(p::Period)
+    buf = IOBuffer()
+    format(buf, p)
+    return String(take!(buf))
 end
+format(i::Int64) = string(i)
+Dates.format(p::Period) = format(p)
 
-# Undated
-struct Undated <: Dates.AbstractTime
-    value::Int
-end
-value(a::Undated) = a.value
-isless(a::Undated, b::Undated) = isless(a.value, b.value)
-(+)(a::Undated, b::Integer) = Undated(a.value + b)
-(-)(a::Undated, b::Integer) = Undated(a.value - b)
-(-)(a::Undated, b::Undated) = a.value - b.value
-isfinite(a::Undated) = true # Due to julia bug, fix in #45646
+const Undated = Int64
+
+# Convenience function for range of periods
+(:)(start::P, stop::P) where P <: Period = start:oneunit(P):stop
 
 include("io.jl")
 
