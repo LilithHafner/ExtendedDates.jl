@@ -4,7 +4,7 @@ using Reexport
 @reexport using Dates
 
 import Base: +, -, isfinite, isless, :, print, show, ==, hash, convert, promote_rule
-import Dates: Date, year, periodisless, toms, days, _units, periodisless, value
+import Dates: Date, year, periodisless, toms, days, _units, periodisless, value, validargs
 
 export period, frequency, subperiod, Undated,
     Semester, semesterofyear, dayofsemester, firstdayofsemester, lastdayofsemester
@@ -36,7 +36,7 @@ julia> ExtendedDates.epoch(Week)
 epoch(::Type{<:Period}) = Date(0)
 epoch(::Type{Week}) = Date(0, 1, 3) # Monday
 
-# Non overflow checking constructors
+# Non overflow checking constructors TODO do we want to check for overflow by default? (yes)
 """
     period(::Type{<:Period}, year::Integer, subperiod::Integer = 1)
 
@@ -66,11 +66,24 @@ julia> Date(period(Day, 0))
 period(P::Type{<:Period}, year::Integer, subperiod::Integer = 1) =
     UTInstant{P}(year, subperiod)
 
+periods_in_year(P::Type{<:YearPeriod}) = Year(1) ÷ P(1)
 UTInstant{P}(year, subperiod) where P =
     UTInstant(P((Date(year) - epoch(P)) ÷ P(1) + subperiod - 1))
 UTInstant{P}(year, subperiod) where P <: YearPeriod =
-    UTInstant(P(Year(1) ÷ P(1) * year + subperiod - 1))
+    UTInstant(P(periods_in_year(P) * year + subperiod - 1))
 
+function validargs(::UTInstant{P}, ::Int64, p::Int64) where P <: YearPeriod
+    0 < p < periods_in_year(P) || return ArgumentError("$P: $p out of range (1:$(periods_in_year(P)))")
+    nothing
+end
+function validargs(::UTInstant{Day}, y::Int64, p::Int64)
+    0 < p < days_in_year(y) || return ArgumentError("$P: $p out of range (1:$(days_in_year(P))) for $y")
+    nothing
+end
+function validargs(T::UTInstant{P}, y::Int64, p::Int64) where P <: Period # TODO inefficient
+    year(Date(T(y, p))) == year(Date(T(y, 1))) || return ArgumentError("$P: $p out of range for $y")
+    nothing
+end
 
 # Conversion to Date to calculate year and subperiod
 Date(p::UTInstant) = Date(0) + p.periods
