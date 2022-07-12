@@ -1,16 +1,10 @@
-using Dates: DATEFORMAT_REGEX_LOCK, DATEFORMAT_REGEX_CACHE, DATEFORMAT_REGEX_HASH,
-    CONVERSION_SPECIFIERS, compute_dateformat_regex,
+using Dates: CONVERSION_SPECIFIERS, compute_dateformat_regex,
     tryparsenext_base10, min_width, max_width, DatePart
 
 function __init__()
-    lock(DATEFORMAT_REGEX_LOCK) do
-        CONVERSION_SPECIFIERS['t'] = Month # Semester
-        CONVERSION_SPECIFIERS['q'] = Month # Quarter
-        CONVERSION_SPECIFIERS['w'] = Day # Week
-
-        DATEFORMAT_REGEX_HASH[] = hash(keys(CONVERSION_SPECIFIERS))
-        DATEFORMAT_REGEX_CACHE[] = compute_dateformat_regex(CONVERSION_SPECIFIERS)
-    end
+    CONVERSION_SPECIFIERS['t'] = Month # Semester
+    CONVERSION_SPECIFIERS['q'] = Month # Quarter
+    CONVERSION_SPECIFIERS['w'] = Day # Week
 end
 
 # TODO: this behavior is strange for weeks
