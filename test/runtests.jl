@@ -64,12 +64,12 @@ end
     @test string(undated_12) == "Undated(12)"
     @test string(period(Month, 1729, 3)) == "1729-03"
     @test string(period(Month, 1729, 12)) == "1729-12"
-    @test string(period(Month, 1729, 13)) == "1730-01"
+    @test_throws ArgumentError("Month: 13 out of range (1:12)") string(period(Month, 1729, 13))
 end
 @testset "repr" begin
     @test endswith(repr(year_2022), "UTInstant(Year(2022))")
     @test endswith(repr(second_quarter_of_200), "UTInstant(Quarter(801))")
-    @test endswith(repr(third_week_of_1935), "UTInstant(Week(100965))")
+    @test endswith(repr(third_week_of_1935), "UTInstant(Week(100966))")
     @test endswith(repr(hundredth_day_of_year_54620), "UTInstant(Day(19949644))")
     @test endswith(repr(second_semester_of_2022), "UTInstant(Semester(4045))")
     @test endswith(repr(undated_12), "Undated(12)")
@@ -109,4 +109,21 @@ end
     @test parse(Date, "1984-W2", dateformat"y-Ww") == Date(1984, 1, 8)
     @test_broken parse(Date, "1984-W12", dateformat"y-Ww")
     @test_throws ArgumentError parse(Date, "1984-W53", dateformat"y-Ww")
+end
+
+@testset "exhaustive constructor-accessor consistency" begin
+    for (P, limit) in [
+        (Day, 365),
+        (Week, 52),
+        (Month, 12),
+        (Quarter, 4),
+        (Semester, 2),
+        (Year, 1)]
+        for y in -10:10
+            for s in 1:limit
+                @test year(period(P, y, s)) == y
+                @test subperiod(period(P, y, s)) == s
+            end
+        end
+    end
 end

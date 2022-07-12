@@ -36,7 +36,7 @@ julia> ExtendedDates.epoch(Week)
 epoch(::Type{<:Period}) = Date(0)
 epoch(::Type{Week}) = Date(0, 1, 3) # Monday
 
-# Non overflow checking constructors TODO do we want to check for overflow by default? (yes)
+# Constructors
 """
     period(::Type{<:Period}, year::Integer, subperiod::Integer = 1)
 
@@ -63,25 +63,32 @@ julia> Date(period(Day, 0))
 0000-01-01
 ```
 """
-period(P::Type{<:Period}, year::Integer, subperiod::Integer = 1) =
-    UTInstant{P}(year, subperiod)
+period(P::Type{<:Period}, year::Integer, subperiod::Integer = 1, unchecked...) =
+    UTInstant{P}(year, subperiod, unchecked...)
 
-periods_in_year(P::Type{<:YearPeriod}) = Year(1) ÷ P(1)
-UTInstant{P}(year, subperiod) where P =
-    UTInstant(P((Date(year) - epoch(P)) ÷ P(1) + subperiod - 1))
-UTInstant{P}(year, subperiod) where P <: YearPeriod =
-    UTInstant(P(periods_in_year(P) * year + subperiod - 1))
+function UTInstant{P}(year, subperiod) where P
+    err = validargs(UTInstant{P}, year, subperiod)
+    err === nothing || throw(err)
+    return UTInstant{P}(year, subperiod, nothing)
+end
 
-function validargs(::UTInstant{P}, ::Int64, p::Int64) where P <: YearPeriod
-    0 < p < periods_in_year(P) || return ArgumentError("$P: $p out of range (1:$(periods_in_year(P)))")
+periodsinyear(P::Type{<:YearPeriod}) = Year(1) ÷ P(1)
+
+UTInstant{P}(year, subperiod, unchecked::Nothing) where P =
+    UTInstant(P(cld((Date(year) - epoch(P)), P(1)) + subperiod - 1))
+UTInstant{P}(year, subperiod, unchecked::Nothing) where P <: YearPeriod =
+    UTInstant(P(periodsinyear(P) * year + subperiod - 1))
+
+function validargs(::Type{UTInstant{P}}, ::Int64, p::Int64) where P <: YearPeriod
+    0 < p <= periodsinyear(P) || return ArgumentError("$P: $p out of range (1:$(periodsinyear(P)))")
     nothing
 end
-function validargs(::UTInstant{Day}, y::Int64, p::Int64)
-    0 < p < days_in_year(y) || return ArgumentError("$P: $p out of range (1:$(days_in_year(P))) for $y")
+function validargs(::Type{UTInstant{Day}}, y::Int64, p::Int64)
+    0 < p <= daysinyear(y) || return ArgumentError("$P: $p out of range (1:$(daysinyear(P))) for $y")
     nothing
 end
-function validargs(T::UTInstant{P}, y::Int64, p::Int64) where P <: Period # TODO inefficient
-    year(Date(T(y, p))) == year(Date(T(y, 1))) || return ArgumentError("$P: $p out of range for $y")
+function validargs(T::Type{UTInstant{P}}, y::Int64, p::Int64) where P <: Period # TODO inefficient
+    year(Date(T(y, p, nothing))) == year(Date(T(y, 1, nothing))) || return ArgumentError("$P: $p out of range for $y")
     nothing
 end
 
@@ -125,11 +132,11 @@ julia> Date(period(Day, 1960, 12))
 1960-01-12
 ```
 """
-subperiod(p::UTInstant) = cld((Date(p) - floor(Date(p), Year)), frequency(p)) + 1
+subperiod(p::UTInstant) = fld((Date(p) - floor(Date(p), Year)), frequency(p)) + 1
 
 # Avoid conversion to Date for Year based periods
-year(p::UTInstant{<:YearPeriod}) = p.periods ÷ Year(1)
-subperiod(p::UTInstant{<:YearPeriod}) = (p.periods % Year(1)) ÷ frequency(p) + 1
+year(p::UTInstant{<:YearPeriod}) = fld(p.periods, Year(1))
+subperiod(p::UTInstant{<:YearPeriod}) = (rem(p.periods, Year(1), RoundDown)) ÷ frequency(p) + 1
 
 # Arithmetic and comparison (for ranges)
 isless(a::UTInstant, b::UTInstant) = isless(a.periods, b.periods)
