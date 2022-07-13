@@ -58,17 +58,13 @@ end
 # Print/string/display/show
 @testset "string" begin
     @test Dates.format(year_2022) == "2022"
-    @test Dates.format(second_quarter_of_200) == "0200-Q2"
+    @test Dates.format(second_quarter_of_200) == "200-Q2"
     @test Dates.format(third_week_of_1935) == "1935-W3"
+    @test Dates.format(hundredth_day_of_year_54620) == "54620-D100"
     @test Dates.format(second_semester_of_2022) == "2022-S2"
     @test_throws MethodError Dates.format(undated_12)
     @test Dates.format(period(Month, 1729, 3)) == "1729-03"
     @test Dates.format(period(Month, 1729, 12)) == "1729-12"
-
-    # Same issue as Dates.jl, it truncates on over-width.
-    # See https://github.com/JuliaLang/julia/issues/46025
-    @test_broken Dates.format(second_quarter_of_200) == "200-Q2"
-    @test_broken Dates.format(hundredth_day_of_year_54620) == "54620-D100"
 end
 @testset "repr" begin
     @test endswith(repr(year_2022), "Year(2022)")

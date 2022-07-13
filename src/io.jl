@@ -5,12 +5,12 @@ function __init__()
     Dates.CONVERSION_SPECIFIERS['P'] = Period
     Dates.CONVERSION_TRANSLATIONS[RenameMePeriod] = (Year, Period)
     Dates.CONVERSION_DEFAULTS[Period] = 1
-    @eval Dates.default_format(::Type{Day}) = dateformat"yyyy-\DP"
-    @eval Dates.default_format(::Type{Week}) = dateformat"yyyy-\WP"
-    @eval Dates.default_format(::Type{Month}) = dateformat"yyyy-PP"
-    @eval Dates.default_format(::Type{Quarter}) = dateformat"yyyy-QP"
-    @eval Dates.default_format(::Type{Semester}) = dateformat"yyyy-\SP"
-    @eval Dates.default_format(::Type{Year}) = dateformat"yyyy"
+    @eval Dates.default_format(::Type{Day}) = dateformat"Y-\DP"
+    @eval Dates.default_format(::Type{Week}) = dateformat"Y-\WP"
+    @eval Dates.default_format(::Type{Month}) = dateformat"Y-PP"
+    @eval Dates.default_format(::Type{Quarter}) = dateformat"Y-QP"
+    @eval Dates.default_format(::Type{Semester}) = dateformat"Y-\SP"
+    @eval Dates.default_format(::Type{Year}) = dateformat"Y"
 end
 
 Dates.tryparsenext(d::Dates.DatePart{'P'}, str, i, len) =
