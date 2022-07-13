@@ -44,7 +44,7 @@ let period = :Semester
 end
 
 periodisless(::Period,::Semester) = true
-periodisless(::Semester,::Year) = false
+periodisless(::Year,::Semester) = false
 periodisless(::Quarter,::Semester) = true
 periodisless(::Month,::Semester) = true
 periodisless(::Week,::Semester) = true
@@ -63,7 +63,7 @@ end
 (==)(x::Semester, y::Dates.FixedPeriod) = y == x
 
 otherperiod_seed(x) = iszero(value(x)) ? Dates.zero_or_fixedperiod_seed : Dates.nonzero_otherperiod_seed
-hash(x::Semester, h::UInt) = hash(3 * value(x), h + otherperiod_seed(x))
+hash(x::Semester, h::UInt) = hash(6 * value(x), h + otherperiod_seed(x))
 
 if VERSION < v"1.9.0-DEV.902"
     @eval toms(c::Semester) = 86400000.0 * 182.62125 * value(c)
@@ -139,7 +139,7 @@ lastdayofsemester(dt::DateTime) = DateTime(lastdayofsemester(Date(dt)))
 """
     semesterofyear(dt::TimeType) -> Int
 
-Return the semester that `dt` resides in. Range of value is 1:4.
+Return the semester that `dt` resides in. Range of value is 1:2.
 """
 semesterofyear(dt::TimeType) = semester(dt)
 
@@ -147,11 +147,11 @@ semesterofyear(dt::TimeType) = semester(dt)
 const SEMESTERDAYS = (0, 31, 59, 90, 120, 151, 0, 31, 62, 92, 123, 153)
 
 """
-    dayofquarter(dt::TimeType) -> Int
+    dayofsemester(dt::TimeType) -> Int
 
-Return the day of the current quarter of `dt`. Range of value is 1:92.
+Return the day of the current semester of `dt`. Range of value is 1:184.
 """
-function dayofquarter(dt::TimeType)
+function dayofsemester(dt::TimeType)
     (y, m, d) = yearmonthday(dt)
     return SEMESTERDAYS[m] + d + (2 < m < 7 && isleapyear(y))
 end

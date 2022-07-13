@@ -128,3 +128,66 @@ end
         end
     end
 end
+
+@testset "Semesters" begin
+    @test string(Semester(4)) == "4 semesters"
+    @test string(Year(1)+Semester(1)) == "1 year, 1 semester"
+    @test_broken string(Year(1)+Semester(1)+Week(1)) == "1 year, 1 semester, 1 week"
+    @test string(Year(1)+Semester(1)+Week(1)) == "1 year, 1 week, 1 semester"
+
+    @test Semester(3) < Semester(5)
+    @test Semester(4) >= Semester(4)
+    @test Semester(4) != Semester(5)
+    @test Semester(4) == Semester(4)
+    @test Semester("64") == Semester(64) == Quarter(128)
+    @test Semester(2) == Year(1)
+    @test Semester(3) != Year(1)
+    @test Semester(2) != Day(365)
+    @test Semester(2) != Day(366)
+    @test Semester(0) == Day(0)
+
+    @test allunique(hash.(vcat(Semester(-100):Semester(100), Week(-100):Week(-1), Week(1):Week(100))))
+    @test hash(Week(0)) == hash(Semester(0))
+    @test hash(Quarter(4)) == hash(Semester(2)) == hash(Year(1))
+
+    for x in [-300, -3, 1, 2, 3, 300, 10^10]
+        for P in [Nanosecond, Microsecond, Millisecond, Second, Minute, Hour, Day, Week, Month, Quarter]
+            @test Dates.periodisless(P(x), Semester(2))
+        end
+        @test Dates.periodisless(Semester(2), Year(x))
+        @test Dates.periodisless(Semester(2), Semester(x)) == (2 < x)
+    end
+
+    @test Dates.toms(Semester(1729)) == Dates.toms(Month(6*1729))
+    @test Dates.days(Semester(1729)) == Dates.days(Month(6*1729))
+
+    @test_broken Dates.semester(1) == 1 # this is easy to fix with eval, but probably a bad idea. 
+    for f in (identity, DateTime, x -> DateTime(x) + Hour(3))
+        for (i, day) in enumerate(Date(1312):Day(1):Date(1312, 6, 30))
+            d = f(day)
+            @test ExtendedDates.semester(d) == semesterofyear(d) == 1
+            @test trunc(d, Semester) == floor(d, Semester) == firstdayofsemester(d) == Date(1312)
+            @test lastdayofsemester(d) == Date(1312, 6, 30)
+            @test dayofsemester(d) == i
+            @test dayofsemester(d) == i
+            @test ceil(d, Semester) >= d
+            @test ceil(d, Semester) < d + Semester(1)
+            @test trunc(ceil(d, Semester), Semester) == ceil(d, Semester)
+        end
+        for (i, day) in enumerate(Date(1312, 7):Day(1):Date(1312, 12, 31))
+            d = f(day)
+            @test ExtendedDates.semester(d) == semesterofyear(d) == 2
+            @test trunc(d, Semester) == floor(d, Semester) == firstdayofsemester(d) == Date(1312, 7)
+            @test lastdayofsemester(d) == Date(1312, 12, 31)
+            @test dayofsemester(d) == i
+            @test ceil(d, Semester) >= d
+            @test ceil(d, Semester) < d + Semester(1)
+            @test trunc(ceil(d, Semester), Semester) == ceil(d, Semester)
+        end
+    end
+
+    for t in (today(), now())
+        @test t + Month(7) - Semester(1) == t + Month(1)
+        @test Semester(2) + t == t + Year(1)
+    end
+end
