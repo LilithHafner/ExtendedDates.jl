@@ -118,23 +118,6 @@ subperiod(p::Period) = fld((Date(p) - floor(Date(p), Year)), frequency(p)) + 1
 year(p::YearPeriod) = fld(p, Year(1))
 subperiod(p::YearPeriod) = (rem(p, Year(1), RoundDown)) ÷ frequency(p) + 1
 
-# print (for conversion to human readable/standard form string)
-prefix(::Type{Semester}) = 'S'
-prefix(::Type{Quarter}) = 'Q'
-prefix(::Type{Week}) = 'W'
-prefix(::Type{Day}) = 'D'
-prefix(P::Period) = prefix(typeof(P))
-format(io::IO, p::Period) = print(io, year(p), '-', prefix(p), subperiod(p))
-format(io::IO, p::Year) = print(io, year(p))
-format(io::IO, p::Month) = print(io, year(p), '-', lpad(subperiod(p), 2, '0'))
-function format(p::Period)
-    buf = IOBuffer()
-    format(buf, p)
-    return String(take!(buf))
-end
-format(i::Int64) = string(i)
-Dates.format(p::Period) = format(p)
-
 const Undated = Int64
 
 # Convenience function for range of periods

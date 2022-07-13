@@ -58,22 +58,17 @@ end
 # Print/string/display/show
 @testset "string" begin
     @test Dates.format(year_2022) == "2022"
-    @test Dates.format(second_quarter_of_200) == "200-Q2"
+    @test Dates.format(second_quarter_of_200) == "0200-Q2"
     @test Dates.format(third_week_of_1935) == "1935-W3"
-    @test Dates.format(hundredth_day_of_year_54620) == "54620-D100"
     @test Dates.format(second_semester_of_2022) == "2022-S2"
     @test_throws MethodError Dates.format(undated_12)
     @test Dates.format(period(Month, 1729, 3)) == "1729-03"
     @test Dates.format(period(Month, 1729, 12)) == "1729-12"
 
-    @test ExtendedDates.format(year_2022) == "2022"
-    @test ExtendedDates.format(second_quarter_of_200) == "200-Q2"
-    @test ExtendedDates.format(third_week_of_1935) == "1935-W3"
-    @test ExtendedDates.format(hundredth_day_of_year_54620) == "54620-D100"
-    @test ExtendedDates.format(second_semester_of_2022) == "2022-S2"
-    @test ExtendedDates.format(undated_12) == "12"
-    @test ExtendedDates.format(period(Month, 1729, 3)) == "1729-03"
-    @test ExtendedDates.format(period(Month, 1729, 12)) == "1729-12"
+    # Same issue as Dates.jl, it truncates on over-width.
+    # See https://github.com/JuliaLang/julia/issues/46025
+    @test_broken Dates.format(second_quarter_of_200) == "200-Q2"
+    @test_broken Dates.format(hundredth_day_of_year_54620) == "54620-D100"
 end
 @testset "repr" begin
     @test endswith(repr(year_2022), "Year(2022)")
@@ -101,22 +96,20 @@ end
     end
 end
 
-@testset "additional parsing" begin
-    @test parse(Date, "1984-Q1", dateformat"y-Qq") == Date(1984, 1, 1)
-    @test parse(Date, "1984-Q2", dateformat"y-Qq") == Date(1984, 4, 1)
-    @test parse(Date, "1984-Q3", dateformat"y-Qq") == Date(1984, 7, 1)
-    @test parse(Date, "1984-Q4", dateformat"y-Qq") == Date(1984, 10, 1)
-    @test_throws ArgumentError parse(Date, "1984-Q5", dateformat"y-Qq")
+@testset "Basic parsing and formatting" begin
+    @test Dates.format(parse(Week, "2012-W4")) == "2012-W4"
+    @test_throws ArgumentError parse(Week, "2012-D4")
+    @test Dates.format(parse(Day, "2012-D4")) == "2012-D4"
+    @test Dates.format(parse(Quarter, "2012-Q4")) == "2012-Q4"
+    @test Dates.format(parse(Month, "2012-04")) == "2012-04"
+    @test_throws ArgumentError("Semester: 4 out of range (1:2)") parse(Semester, "2012-S4")
+    @test Dates.format(parse(Semester, "2012-S2")) == "2012-S2"
+    @test Dates.format(parse(Semester, "2012")) == "2012-S1"
+    @test Dates.format(parse(Year, "2012")) == "2012"
+end
 
-    @test_throws ArgumentError parse(Date, "1984-S0", dateformat"y-\St")
-    @test parse(Date, "1984-S1", dateformat"y-\St") == Date(1984, 1, 1)
-    @test parse(Date, "1984-S2", dateformat"y-\St") == Date(1984, 7, 1)
-    @test_throws ArgumentError parse(Date, "1984-S3", dateformat"y-\St")
-
-    @test parse(Date, "1984-W1", dateformat"y-Ww") == Date(1984, 1, 1)
-    @test parse(Date, "1984-W2", dateformat"y-Ww") == Date(1984, 1, 8)
-    @test_broken parse(Date, "1984-W12", dateformat"y-Ww")
-    @test_throws ArgumentError parse(Date, "1984-W53", dateformat"y-Ww")
+@testset "Tricky parsing and formatting" begin
+    # TODO
 end
 
 @testset "exhaustive constructor-accessor consistency" begin
