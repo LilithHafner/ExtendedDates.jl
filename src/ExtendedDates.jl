@@ -43,10 +43,10 @@ January 1, year 0. For week periods, it is Monday, January 3, year 0.
 
 ```jldoctest
 julia> x = period(Semester, 2022, 1)
-ExtendedDates.UTInstant(Semester(4044))
+4044 semesters
 
-julia> println(x)
-2022-S1
+julia> Dates.format(x)
+"2022-S1"
 
 julia> Date(x)
 2022-01-01
