@@ -65,10 +65,11 @@ function period(P::Type{<:Period}, year::Integer, subperiod::Integer = 1)
 end
 
 periodsinyear(P::Type{<:YearPeriod}) = Year(1) ÷ P(1)
-period(P::Type{<:Period}, year, subperiod, unchecked) =
+period(P::Type{<:Period}, year, subperiod, unchecked::Nothing) =
     P(cld((Date(year) - epoch(P)), P(1)) + subperiod)
-period(P::Type{<: YearPeriod}, year, subperiod, unchecked) =
+period(P::Type{<: YearPeriod}, year, subperiod, unchecked::Nothing) =
     P(periodsinyear(P) * (year - 1) + subperiod)
+period(::Type{Day}, year, month, day::Number) = Day(Dates.value(Date(year, month, day)))
 
 function validargs(P::Type{<:YearPeriod}, ::Int64, p::Int64)
     0 < p <= periodsinyear(P) || return ArgumentError("$P: $p out of range (1:$(periodsinyear(P)))")

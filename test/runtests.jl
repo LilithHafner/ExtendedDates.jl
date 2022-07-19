@@ -94,8 +94,12 @@ end
 end
 
 @testset "day consistency" begin
-    for year in -10:4000
+    for date in Date(-2):Day(1):Date(5)
+        year, month, day = yearmonthday(date)
+
         @test Dates.value(Date(year)) == Dates.value(period(Day, year))
+        @test Dates.value(Date(year, 1, day)) == Dates.value(period(Day, year, day))
+        @test Dates.value(Date(year, month, day)) == Dates.value(period(Day, year, month, day))
     end
 end
 
