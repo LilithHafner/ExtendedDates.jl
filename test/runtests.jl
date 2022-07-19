@@ -157,7 +157,7 @@ end
     @test Dates.toms(Semester(1729)) == Dates.toms(Month(6*1729))
     @test Dates.days(Semester(1729)) == Dates.days(Month(6*1729))
 
-    @test_broken Dates.semester(1) == 1 # this is easy to fix with eval, but probably a bad idea. 
+    @test_broken Dates.semester(1) == 1 # this is easy to fix with eval, but probably a bad idea.
     for f in (identity, DateTime, x -> DateTime(x) + Hour(3))
         for (i, day) in enumerate(Date(1312):Day(1):Date(1312, 6, 30))
             d = f(day)

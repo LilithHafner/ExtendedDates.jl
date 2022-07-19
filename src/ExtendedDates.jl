@@ -17,7 +17,7 @@ const YearPeriod = Union{Month, Quarter, Semester, Year}
 """
     epoch(::Type{Period})
 
-The canonical epoch of a given type of period. For most period types the epoch is 
+The canonical epoch of a given type of period. For most period types the epoch is
 Saturday, January 1, year 0. For week periods, it is Monday, January 3, year 0.
 
 ```jldoctest
@@ -65,7 +65,7 @@ function period(P::Type{<:Period}, year::Integer, subperiod::Integer = 1)
 end
 
 periodsinyear(P::Type{<:YearPeriod}) = Year(1) ÷ P(1)
-period(P::Type{<:Period}, year, subperiod, unchecked) = 
+period(P::Type{<:Period}, year, subperiod, unchecked) =
     P(cld((Date(year) - epoch(P)), P(1)) + subperiod - 1)
 period(P::Type{<: YearPeriod}, year, subperiod, unchecked) =
     P(periodsinyear(P) * year + subperiod - 1)

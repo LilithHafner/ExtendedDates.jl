@@ -7,7 +7,7 @@ end
 
 ## periods.jl
 
-# The style of this let statement is a bit odd because 
+# The style of this let statement is a bit odd because
 # the body is a verbatim copy of Dates/src/periods.jl
 let period = :Semester
     period_str = string(period)
