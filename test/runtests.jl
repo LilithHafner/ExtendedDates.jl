@@ -67,11 +67,11 @@ end
     @test Dates.format(period(Month, 1729, 12)) == "1729-12"
 end
 @testset "repr" begin
-    @test endswith(repr(year_2022), "Year(2022)")
-    @test endswith(repr(second_quarter_of_200), "Quarter(801)")
-    @test endswith(repr(third_week_of_1935), "Week(100966)")
-    @test endswith(repr(hundredth_day_of_year_54620), "Day(19949644)")
-    @test endswith(repr(second_semester_of_2022), "Semester(4045)")
+    @test repr(year_2022) == "Year(2022)"
+    @test repr(second_quarter_of_200) == "Quarter(798)"
+    @test repr(third_week_of_1935) == "Week(100915)"
+    @test repr(hundredth_day_of_year_54620) == "Day(19949279)"
+    @test repr(second_semester_of_2022) == "Semester(4044)"
     @test repr(undated_12) == "12"
 end
 
@@ -84,11 +84,18 @@ end
     @test Base.summarysize(second_semester_of_2022) <= sizeof(Int64)
 end
 
-@testset "zeros" begin
+@testset "ones" begin
     for P in subtypes(DatePeriod)
-        p = period(P, 0, 1)
-        @test Dates.value(p) == 0
-        @test Date(p) == ExtendedDates.epoch(P)
+        p = period(P, 1, 1)
+        @test p == period(P, 1)
+        @test Dates.value(p) == 1 == Dates.value(Date(p))
+        @test Date(p) == ExtendedDates.epoch(P) == Date(1)
+    end
+end
+
+@testset "day consistency" begin
+    for year in -10:4000
+        @test Dates.value(Date(year)) == Dates.value(period(Day, year))
     end
 end
 

@@ -18,18 +18,18 @@ const YearPeriod = Union{Month, Quarter, Semester, Year}
     epoch(::Type{Period})
 
 The canonical epoch of a given type of period. For most period types the epoch is
-Saturday, January 1, year 0. For week periods, it is Monday, January 3, year 0.
+Saturday, January 1, year 1.
 
 ```jldoctest
 julia> ExtendedDates.epoch(Quarter)
-0000-01-01
+0001-01-01
 
 julia> ExtendedDates.epoch(Week)
-0000-01-03
+0001-01-01
 ```
 """
-epoch(::Type{<:Period}) = Date(0)
-epoch(::Type{Week}) = Date(0, 1, 3) # Monday
+epoch(::Type{<:Period}) = Date(1)
+epoch(::Type{Week}) = Date(1) # Monday
 
 # Constructors
 """
@@ -43,7 +43,7 @@ January 1, year 0. For week periods, it is Monday, January 3, year 0.
 
 ```jldoctest
 julia> x = period(Semester, 2022, 1)
-4044 semesters
+4043 semesters
 
 julia> Dates.format(x)
 "2022-S1"
@@ -66,9 +66,9 @@ end
 
 periodsinyear(P::Type{<:YearPeriod}) = Year(1) ÷ P(1)
 period(P::Type{<:Period}, year, subperiod, unchecked) =
-    P(cld((Date(year) - epoch(P)), P(1)) + subperiod - 1)
+    P(cld((Date(year) - epoch(P)), P(1)) + subperiod)
 period(P::Type{<: YearPeriod}, year, subperiod, unchecked) =
-    P(periodsinyear(P) * year + subperiod - 1)
+    P(periodsinyear(P) * (year - 1) + subperiod)
 
 function validargs(P::Type{<:YearPeriod}, ::Int64, p::Int64)
     0 < p <= periodsinyear(P) || return ArgumentError("$P: $p out of range (1:$(periodsinyear(P)))")
@@ -84,7 +84,7 @@ function validargs(P::Type{<:Period}, y::Int64, p::Int64) # TODO inefficient
 end
 
 # Conversion to Date to calculate year and subperiod
-Date(p::P) where P <: Period = epoch(P) + p
+Date(p::P) where P <: Period = epoch(P) + p - oneunit(P)
 
 # Fallback accessors for frequency, year, subperiod
 const frequency = oneunit
@@ -115,8 +115,8 @@ julia> Date(period(Day, 1960, 12))
 subperiod(p::Period) = fld((Date(p) - floor(Date(p), Year)), frequency(p)) + 1
 
 # Avoid conversion to Date for Year based periods
-year(p::YearPeriod) = fld(p, Year(1))
-subperiod(p::YearPeriod) = (rem(p, Year(1), RoundDown)) ÷ frequency(p) + 1
+year(p::YearPeriod) = fld(p - oneunit(p), Year(1)) + year(epoch(typeof(p)))
+subperiod(p::YearPeriod) = (rem(p - oneunit(p), Year(1), RoundDown)) ÷ frequency(p) + 1
 
 const Undated = Int64
 
