@@ -70,6 +70,27 @@ function Base.parse(::Type{Period}, str::AbstractString, dfs=Dates.default_forma
     res === nothing && throw(ArgumentError("No matching date format found"))
     res
 end
+function Base.parse(::Type{Tuple{Period, DateFormat}}, str::AbstractString, dfs=Dates.default_format(Period))
+    for (df, P) in dfs
+        res = tryparse(P, str, df)
+        res !== nothing && return res, df
+    end
+end
+function Base.parse(::Type{Vector{<:Period}}, strs::AbstractVector{<:AbstractString}, dfs=Dates.default_format(Period))
+    parse_periods(strs, dfs)
+end
+function parse_periods(strs, dfs=Dates.default_format(Period))
+    si = iterate(strs)
+    si === nothing && return Period[]
+    p, df = parse(Tuple{Period, DateFormat}, first(si), dfs)
+    parse_periods!([p], Iterators.drop(strs, 1), df)
+end
+function parse_periods!(v, strs, df)
+    for str in strs
+        push!(v, parse(eltype(v), str, df))
+    end
+    v
+end
 
 function Dates.format(io::IO, dt::Period, fmt::DateFormat)
     for token in fmt.tokens

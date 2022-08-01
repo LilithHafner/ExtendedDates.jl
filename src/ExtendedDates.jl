@@ -7,6 +7,7 @@ import Base: +, -, isfinite, isless, :, print, show, ==, hash, convert, promote_
 import Dates: Date, year, periodisless, toms, days, _units, periodisless, value, validargs
 
 export period, frequency, subperiod, Undated,
+    parse_periods,
     Semester, semesterofyear, dayofsemester, firstdayofsemester, lastdayofsemester
 
 include("Semesters.jl")

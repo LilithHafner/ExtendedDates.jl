@@ -132,6 +132,17 @@ end
     @test parse(Period, "2022-02-01") == period(Day, 2022, 2, 1)
 end
 
+@testset "Bulk parsing" begin
+    @test parse(Tuple{Period, DateFormat}, "2022-S2") == (period(Semester, 2022, 2), Dates.default_format(Semester))
+    @test parse(Tuple{Period, DateFormat}, "2022-s2") == (period(Semester, 2022, 2), dateformat"YYYY-\sP")
+    @test parse_periods(["1930", "1940", "1950"]) == period.(Year, [1930, 1940, 1950])
+    @test parse(Vector{<:Period}, ["123-7-2", "123-8-2", "124-2-4"]) == [
+        period(Day, 123, 7, 2),
+        period(Day, 123, 8, 2),
+        period(Day, 124, 2, 4)
+    ]
+end
+
 @testset "Ordinal dates" begin
     # https://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates
     @test parse(Period, "2022-002") == period(Day, 2022, 2)
