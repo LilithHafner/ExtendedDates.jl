@@ -3,9 +3,9 @@ struct RenameMePeriod <: TimeType end
 
 function __init__()
     Dates.CONVERSION_SPECIFIERS['P'] = Period
-    Dates.CONVERSION_TRANSLATIONS[RenameMePeriod] = (Year, Period, Month)
+    Dates.CONVERSION_TRANSLATIONS[RenameMePeriod] = (Year, Period, Month, Day)
     Dates.CONVERSION_DEFAULTS[Period] = 1
-    formats = @eval [
+    @eval Dates.default_format(::Type{Period}) = [
         dateformat"YYYY" => Year,
         dateformat"YYYY-\Y" => Year,
         dateformat"YYYY-\YP" => Year,
@@ -22,17 +22,15 @@ function __init__()
         dateformat"YYYY-qP" => Quarter,
         dateformat"YYYY-\SP" => Semester,
         dateformat"YYYY-\sP" => Semester,
-        dateformat"YYYY-m-P" => Day,
+        dateformat"YYYY-mm-dd" => Day,
     ]
-    @eval Dates.default_format(::Type{Period}) = $formats
-    for P in [Day, Week, Month, Quarter, Semester, Year]
-        for (df, P2) in formats
-            if P2 == P
-                @eval Dates.default_format(::Type{$P}) = $df
-                break
-            end
-        end
-    end
+
+    @eval Dates.default_format(::Type{Day}) = dateformat"YYYY-mm-dd"
+    @eval Dates.default_format(::Type{Week}) = dateformat"YYYY-\WP"
+    @eval Dates.default_format(::Type{Month}) = dateformat"YYYY-\MPP"
+    @eval Dates.default_format(::Type{Quarter}) = dateformat"YYYY-QP"
+    @eval Dates.default_format(::Type{Semester}) = dateformat"YYYY-\SP"
+    @eval Dates.default_format(::Type{Year}) = dateformat"YYYY"
 end
 
 Dates.tryparsenext(d::Dates.DatePart{'P'}, str, i, len) =
@@ -45,13 +43,14 @@ function Base.tryparse(::Type{T}, str::AbstractString,
     pos, len = firstindex(str), lastindex(str)
     res = Dates.tryparsenext_internal(RenameMePeriod, str, pos, len, df, raise)
     res === nothing && return nothing
-    (y, p, m), _ = res
-    if m == 1 # manual union splitting to avoid dynamic dispatch
+    (y, p, m, d), _ = res
+    # manual union splitting to avoid dynamic dispatch
+    if T == Day && (m != 1 || d != 1)
+        !raise && validargs(T, y, m, d) !== nothing && return nothing
+        period(T, y, m, d)::T
+    else
         !raise && validargs(T, y, p) !== nothing && return nothing
         period(T, y, p)::T
-    else
-        !raise && validargs(T, y, m, p) !== nothing && return nothing
-        period(T, y, m, p)::T
     end
 end
 function Base.parse(::Type{T}, str::AbstractString,

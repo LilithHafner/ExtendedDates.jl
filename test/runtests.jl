@@ -60,8 +60,7 @@ end
     @test Dates.format(year_2022) == "2022"
     @test Dates.format(second_quarter_of_200) == "0200-Q2"
     @test Dates.format(third_week_of_1935) == "1935-W3"
-    @test Dates.format(hundredth_day_of_year_54620) == "54620-100"
-    @test Dates.format(hundredth_day_of_year_54620 - Day(1)) == "54620-099"
+    @test Dates.format(hundredth_day_of_year_54620) == "54620-04-09"
     @test Dates.format(second_semester_of_2022) == "2022-S2"
     @test_throws MethodError Dates.format(undated_12)
     @test Dates.format(period(Month, 1729, 3)) == "1729-M03"
@@ -94,20 +93,11 @@ end
     end
 end
 
-@testset "day consistency" begin
-    for date in Date(-2):Day(1):Date(5)
-        year, month, day = yearmonthday(date)
-
-        @test Dates.value(Date(year)) == Dates.value(period(Day, year))
-        @test Dates.value(Date(year, 1, day)) == Dates.value(period(Day, year, day))
-        @test Dates.value(Date(year, month, day)) == Dates.value(period(Day, year, month, day))
-    end
-end
-
 @testset "Specific parsing and formatting" begin
     @test Dates.format(parse(Week, "2012-W4")) == "2012-W4"
     @test_throws ArgumentError parse(Week, "2012-D4")
-    @test Dates.format(parse(Day, "2012-04")) == "2012-004"
+    @test Dates.format(parse(Day, "2012-04-13")) == "2012-04-13"
+    @test Dates.format(parse(Day, "2012-04")) == "2012-04-01"
     @test Dates.format(parse(Quarter, "2012-Q4")) == "2012-Q4"
     @test Dates.format(parse(Month, "2012-M04")) == "2012-M04"
     @test_throws ArgumentError("Semester: 4 out of range (1:2)") parse(Semester, "2012-S4")
@@ -132,6 +122,17 @@ end
     @test parse(Period, "2022-02-01") == period(Day, 2022, 2, 1)
 end
 
+@testset "Ordinal dates" begin
+    # https://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates
+    @test parse(Period, "2022-002") == period(Day, 2022, 2)
+    @test parse(Period, "2022-17") == period(Day, 2022, 17)
+    @test parse(Period, "2022-360") == period(Day, 2022, 360)
+
+    # nonstandard, but they still parse
+    @test parse(Period, "2022-D002") == period(Day, 2022, 2)
+    @test parse(Period, "2022-d002") == period(Day, 2022, 2)
+end
+
 @testset "Bulk parsing" begin
     @test parse(Tuple{Period, DateFormat}, "2022-S2") == (period(Semester, 2022, 2), Dates.default_format(Semester))
     @test parse(Tuple{Period, DateFormat}, "2022-s2") == (period(Semester, 2022, 2), dateformat"YYYY-\sP")
@@ -143,15 +144,17 @@ end
     ]
 end
 
-@testset "Ordinal dates" begin
-    # https://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates
-    @test parse(Period, "2022-002") == period(Day, 2022, 2)
-    @test parse(Period, "2022-17") == period(Day, 2022, 17)
-    @test parse(Period, "2022-360") == period(Day, 2022, 360)
+@testset "day consistency" begin
+    for date in Date(-2):Day(1):Date(5)
+        year, month, day = yearmonthday(date)
 
-    # nonstandard, but they still parse
-    @test parse(Period, "2022-D002") == period(Day, 2022, 2)
-    @test parse(Period, "2022-d002") == period(Day, 2022, 2)
+        @test Dates.value(Date(year)) == Dates.value(period(Day, year))
+        @test Dates.value(Date(year, 1, day)) == Dates.value(period(Day, year, day))
+        @test Dates.value(Date(year, month, day)) == Dates.value(period(Day, year, month, day))
+    end
+
+    @test parse(Date, "2012-7-14") == Date(parse(Day, "2012-7-14"))
+    Dates.format(parse(Day, "2012-7-4")) == "2012-07-04"
 end
 
 @testset "exhaustive constructor-accessor consistency" begin

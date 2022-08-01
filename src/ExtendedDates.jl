@@ -126,6 +126,10 @@ const Undated = Int64
 # Convenience function for range of periods
 (:)(start::P, stop::P) where P <: Period = start:oneunit(P):stop
 
+# So that Day periods behave like Dates
+Dates.month(d::Day) = month(Date(d))
+Dates.day(d::Day) = day(Date(d))
+
 include("io.jl")
 
 end
