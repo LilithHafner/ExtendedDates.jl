@@ -58,13 +58,14 @@ end
 # Print/string/display/show
 @testset "string" begin
     @test Dates.format(year_2022) == "2022"
-    @test Dates.format(second_quarter_of_200) == "200-Q2"
+    @test Dates.format(second_quarter_of_200) == "0200-Q2"
     @test Dates.format(third_week_of_1935) == "1935-W3"
-    @test Dates.format(hundredth_day_of_year_54620) == "54620-D100"
+    @test Dates.format(hundredth_day_of_year_54620) == "54620-100"
+    @test Dates.format(hundredth_day_of_year_54620 - Day(1)) == "54620-099"
     @test Dates.format(second_semester_of_2022) == "2022-S2"
     @test_throws MethodError Dates.format(undated_12)
-    @test Dates.format(period(Month, 1729, 3)) == "1729-03"
-    @test Dates.format(period(Month, 1729, 12)) == "1729-12"
+    @test Dates.format(period(Month, 1729, 3)) == "1729-M03"
+    @test Dates.format(period(Month, 1729, 12)) == "1729-M12"
 end
 @testset "repr" begin
     @test repr(year_2022) == "Year(2022)"
@@ -103,20 +104,43 @@ end
     end
 end
 
-@testset "Basic parsing and formatting" begin
+@testset "Specific parsing and formatting" begin
     @test Dates.format(parse(Week, "2012-W4")) == "2012-W4"
     @test_throws ArgumentError parse(Week, "2012-D4")
-    @test Dates.format(parse(Day, "2012-D4")) == "2012-D4"
+    @test Dates.format(parse(Day, "2012-04")) == "2012-004"
     @test Dates.format(parse(Quarter, "2012-Q4")) == "2012-Q4"
-    @test Dates.format(parse(Month, "2012-04")) == "2012-04"
+    @test Dates.format(parse(Month, "2012-M04")) == "2012-M04"
     @test_throws ArgumentError("Semester: 4 out of range (1:2)") parse(Semester, "2012-S4")
     @test Dates.format(parse(Semester, "2012-S2")) == "2012-S2"
     @test Dates.format(parse(Semester, "2012")) == "2012-S1"
     @test Dates.format(parse(Year, "2012")) == "2012"
 end
 
-@testset "Tricky parsing and formatting" begin
-    # TODO
+@testset "Generic parsing" begin
+    @test parse(Period, "2022") == period(Year, 2022)
+    @test parse(Period, "2022-S2") == period(Semester, 2022, 2)
+    @test parse(Period, "2022-s2") == period(Semester, 2022,2)
+    @test parse(Period, "2022-Q2") == period(Quarter, 2022, 2)
+    @test parse(Period, "2022-q2") == period(Quarter, 2022,2)
+    @test parse(Period, "2022-M2") == period(Month, 2022, 2)
+    @test parse(Period, "2022-m2") == period(Month, 2022, 2)
+    @test parse(Period, "2022-W2") == period(Week, 2022, 2)
+    @test parse(Period, "2022-w2") == period(Week, 2022, 2)
+    @test parse(Period, "2022-2-1") == period(Day, 2022, 2, 1)
+    @test parse(Period, "2022-02-1") == period(Day, 2022, 2, 1)
+    @test parse(Period, "2022-2-01") == period(Day, 2022, 2, 1)
+    @test parse(Period, "2022-02-01") == period(Day, 2022, 2, 1)
+end
+
+@testset "Ordinal dates" begin
+    # https://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates
+    @test parse(Period, "2022-002") == period(Day, 2022, 2)
+    @test parse(Period, "2022-17") == period(Day, 2022, 17)
+    @test parse(Period, "2022-360") == period(Day, 2022, 360)
+
+    # nonstandard, but they still parse
+    @test parse(Period, "2022-D002") == period(Day, 2022, 2)
+    @test parse(Period, "2022-d002") == period(Day, 2022, 2)
 end
 
 @testset "exhaustive constructor-accessor consistency" begin

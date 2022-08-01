@@ -79,6 +79,7 @@ function validargs(::Type{Day}, y::Int64, p::Int64)
     0 < p <= daysinyear(y) || return ArgumentError("$P: $p out of range (1:$(daysinyear(P))) for $y")
     nothing
 end
+validargs(::Type{Day}, y::Int64, m::Int64, p::Int64) = validargs(Date, y, m, p)
 function validargs(P::Type{<:Period}, y::Int64, p::Int64) # TODO inefficient
     year(Date(period(P, y, p, nothing))) == year(Date(period(P, y, 1, nothing))) || return ArgumentError("$P: $p out of range for $y")
     nothing
