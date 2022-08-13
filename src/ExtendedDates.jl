@@ -11,7 +11,8 @@ using Dates: UTInstant
 export period, frequency, subperiod, Undated,
     parse_periods,
     Semester, semesterofyear, dayofsemester, firstdayofsemester, lastdayofsemester,
-    DaySE, WeekSE, MonthSE, QuarterSE, SemesterSE, YearSE, PeriodSE
+    DaySE, WeekSE, MonthSE, QuarterSE, SemesterSE, YearSE, PeriodSE,
+    PeriodsSinceEpoch
 
 include("Semesters.jl")
 
@@ -128,6 +129,8 @@ const YearSE = UTInstant{Year}
 const PeriodSE = UTInstant{<:Period}
 
 Base.show(io::IO, ::MIME"text/plain", p::PeriodSE) = Dates.format(io, p)
+
+const PeriodsSinceEpoch = Union{PeriodSE, Int64} # TODO rename me
 # End TODO move me
 
 const Undated = Int64
