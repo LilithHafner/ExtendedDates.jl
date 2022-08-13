@@ -244,3 +244,10 @@ end
     @test WeekSE(1933, 50) === period(Week, 1933, 50)
     @test DaySE(1934, 12, 31) === period(Day, 1934, 12, 31)
 end
+
+@testset "show(::MIME\"text/plain\")" begin
+    buf = IOBuffer()
+    @test show(buf, MIME"text/plain"(), DaySE(1952, 4, 17)) === nothing
+    @test show(buf, MIME"text/plain"(), WeekSE(1952, 45)) === nothing
+    @test String(take!(buf)) == "1952-04-17" * "1952-W45"
+end
