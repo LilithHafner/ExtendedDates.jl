@@ -67,11 +67,11 @@ end
     @test Dates.format(period(Month, 1729, 12)) == "1729-M12"
 end
 @testset "repr" begin
-    @test repr(year_2022) == "Year(2022)"
-    @test repr(second_quarter_of_200) == "Quarter(798)"
-    @test repr(third_week_of_1935) == "Week(100915)"
-    @test repr(hundredth_day_of_year_54620) == "Day(19949279)"
-    @test repr(second_semester_of_2022) == "Semester(4044)"
+    @test repr(year_2022) == "Dates.UTInstant{Year}(Year(2022))"
+    @test repr(second_quarter_of_200) == "Dates.UTInstant{Quarter}(Quarter(798))"
+    @test repr(third_week_of_1935) == "Dates.UTInstant{Week}(Week(100915))"
+    @test repr(hundredth_day_of_year_54620) == "Dates.UTInstant{Day}(Day(19949279))"
+    @test repr(second_semester_of_2022) == "Dates.UTInstant{Semester}(Semester(4044))"
     @test repr(undated_12) == "12"
 end
 
@@ -89,55 +89,55 @@ end
         p = period(P, 1, 1)
         @test p == period(P, 1)
         @test Dates.value(p) == 1 == Dates.value(Date(p))
-        @test Date(p) == ExtendedDates.epoch(P) == Date(1)
+        @test Date(p) == ExtendedDates.EPOCH == Date(1)
     end
 end
 
 @testset "Specific parsing and formatting" begin
-    @test Dates.format(parse(Week, "2012-W4")) == "2012-W4"
-    @test_throws ArgumentError parse(Week, "2012-D4")
-    @test Dates.format(parse(Day, "2012-04-13")) == "2012-04-13"
-    @test Dates.format(parse(Day, "2012-04")) == "2012-04-01"
-    @test Dates.format(parse(Quarter, "2012-Q4")) == "2012-Q4"
-    @test Dates.format(parse(Month, "2012-M04")) == "2012-M04"
-    @test_throws ArgumentError("Semester: 4 out of range (1:2)") parse(Semester, "2012-S4")
-    @test Dates.format(parse(Semester, "2012-S2")) == "2012-S2"
-    @test Dates.format(parse(Semester, "2012")) == "2012-S1"
-    @test Dates.format(parse(Year, "2012")) == "2012"
+    @test Dates.format(parse(WeekSE, "2012-W4")) == "2012-W4"
+    @test_throws ArgumentError parse(WeekSE, "2012-D4")
+    @test Dates.format(parse(DaySE, "2012-04-13")) == "2012-04-13"
+    @test Dates.format(parse(DaySE, "2012-04")) == "2012-04-01"
+    @test Dates.format(parse(QuarterSE, "2012-Q4")) == "2012-Q4"
+    @test Dates.format(parse(MonthSE, "2012-M04")) == "2012-M04"
+    @test_throws ArgumentError("Semester: 4 out of range (1:2)") parse(SemesterSE, "2012-S4")
+    @test Dates.format(parse(SemesterSE, "2012-S2")) == "2012-S2"
+    @test Dates.format(parse(SemesterSE, "2012")) == "2012-S1"
+    @test Dates.format(parse(YearSE, "2012")) == "2012"
 end
 
 @testset "Generic parsing" begin
-    @test parse(Period, "2022") == period(Year, 2022)
-    @test parse(Period, "2022-S2") == period(Semester, 2022, 2)
-    @test parse(Period, "2022-s2") == period(Semester, 2022,2)
-    @test parse(Period, "2022-Q2") == period(Quarter, 2022, 2)
-    @test parse(Period, "2022-q2") == period(Quarter, 2022,2)
-    @test parse(Period, "2022-M2") == period(Month, 2022, 2)
-    @test parse(Period, "2022-m2") == period(Month, 2022, 2)
-    @test parse(Period, "2022-W2") == period(Week, 2022, 2)
-    @test parse(Period, "2022-w2") == period(Week, 2022, 2)
-    @test parse(Period, "2022-2-1") == period(Day, 2022, 2, 1)
-    @test parse(Period, "2022-02-1") == period(Day, 2022, 2, 1)
-    @test parse(Period, "2022-2-01") == period(Day, 2022, 2, 1)
-    @test parse(Period, "2022-02-01") == period(Day, 2022, 2, 1)
+    @test parse(PeriodSE, "2022") == period(Year, 2022)
+    @test parse(PeriodSE, "2022-S2") == period(Semester, 2022, 2)
+    @test parse(PeriodSE, "2022-s2") == period(Semester, 2022,2)
+    @test parse(PeriodSE, "2022-Q2") == period(Quarter, 2022, 2)
+    @test parse(PeriodSE, "2022-q2") == period(Quarter, 2022,2)
+    @test parse(PeriodSE, "2022-M2") == period(Month, 2022, 2)
+    @test parse(PeriodSE, "2022-m2") == period(Month, 2022, 2)
+    @test parse(PeriodSE, "2022-W2") == period(Week, 2022, 2)
+    @test parse(PeriodSE, "2022-w2") == period(Week, 2022, 2)
+    @test parse(PeriodSE, "2022-2-1") == period(Day, 2022, 2, 1)
+    @test parse(PeriodSE, "2022-02-1") == period(Day, 2022, 2, 1)
+    @test parse(PeriodSE, "2022-2-01") == period(Day, 2022, 2, 1)
+    @test parse(PeriodSE, "2022-02-01") == period(Day, 2022, 2, 1)
 end
 
 @testset "Ordinal dates" begin
     # https://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates
-    @test parse(Period, "2022-002") == period(Day, 2022, 2)
-    @test parse(Period, "2022-17") == period(Day, 2022, 17)
-    @test parse(Period, "2022-360") == period(Day, 2022, 360)
+    @test parse(PeriodSE, "2022-002") == period(Day, 2022, 2)
+    @test parse(PeriodSE, "2022-17") == period(Day, 2022, 17)
+    @test parse(PeriodSE, "2022-360") == period(Day, 2022, 360)
 
     # nonstandard, but they still parse
-    @test parse(Period, "2022-D002") == period(Day, 2022, 2)
-    @test parse(Period, "2022-d002") == period(Day, 2022, 2)
+    @test parse(PeriodSE, "2022-D002") == period(Day, 2022, 2)
+    @test parse(PeriodSE, "2022-d002") == period(Day, 2022, 2)
 end
 
 @testset "Bulk parsing" begin
-    @test parse(Tuple{Period, DateFormat}, "2022-S2") == (period(Semester, 2022, 2), Dates.default_format(Semester))
-    @test parse(Tuple{Period, DateFormat}, "2022-s2") == (period(Semester, 2022, 2), dateformat"YYYY-\sP")
+    @test parse(Tuple{PeriodSE, DateFormat}, "2022-S2") == (period(Semester, 2022, 2), Dates.default_format(SemesterSE))
+    @test parse(Tuple{PeriodSE, DateFormat}, "2022-s2") == (period(Semester, 2022, 2), dateformat"YYYY-\sP")
     @test parse_periods(["1930", "1940", "1950"]) == period.(Year, [1930, 1940, 1950])
-    @test parse(Vector{<:Period}, ["123-7-2", "123-8-2", "124-2-4"]) == [
+    @test parse(Vector{<:PeriodSE}, ["123-7-2", "123-8-2", "124-2-4"]) == [
         period(Day, 123, 7, 2),
         period(Day, 123, 8, 2),
         period(Day, 124, 2, 4)
@@ -153,8 +153,8 @@ end
         @test Dates.value(Date(year, month, day)) == Dates.value(period(Day, year, month, day))
     end
 
-    @test parse(Date, "2012-7-14") == Date(parse(Day, "2012-7-14"))
-    Dates.format(parse(Day, "2012-7-4")) == "2012-07-04"
+    @test parse(Date, "2012-7-14") == Date(parse(DaySE, "2012-7-14"))
+    Dates.format(parse(DaySE, "2012-7-4")) == "2012-07-04"
 end
 
 @testset "exhaustive constructor-accessor consistency" begin
@@ -191,7 +191,7 @@ end
     @test Semester(2) != Day(366)
     @test Semester(0) == Day(0)
 
-    @test allunique(hash.(vcat(Semester(-100):Semester(100), Week(-100):Week(-1), Week(1):Week(100))))
+    @test allunique(hash.(vcat(SemesterSE(-100, 1):SemesterSE(100, 1), WeekSE(-100, 1):WeekSE(-1, 1), WeekSE(1, 1):WeekSE(100, 1))))
     @test hash(Week(0)) == hash(Semester(0))
     @test hash(Quarter(4)) == hash(Semester(2)) == hash(Year(1))
 
