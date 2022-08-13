@@ -126,6 +126,8 @@ const QuarterSE = UTInstant{Quarter}
 const SemesterSE = UTInstant{Semester}
 const YearSE = UTInstant{Year}
 const PeriodSE = UTInstant{<:Period}
+
+Base.show(io::IO, ::MIME"text/plain", p::PeriodSE) = Dates.format(io, p)
 # End TODO move me
 
 const Undated = Int64

@@ -91,7 +91,7 @@ function parse_periods!(v, strs, df)
     v
 end
 
-function Dates.format(io::IO, dt::PeriodSE, fmt::DateFormat)
+function Dates.format(io::IO, dt::PeriodSE, fmt::DateFormat=Dates.default_format(typeof(dt)))
     for token in fmt.tokens
         Dates.format(io, token, dt, fmt.locale)
     end
