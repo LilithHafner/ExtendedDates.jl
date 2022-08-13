@@ -236,3 +236,11 @@ end
         @test Semester(2) + t == t + Year(1)
     end
 end
+
+@testset "short constructors" begin
+    @test SemesterSE(1930, 1) === period(Semester, 1930, 1)
+    @test QuarterSE(1931, 4) === period(Quarter, 1931, 4)
+    @test MonthSE(1932, 3) === period(Month, 1932, 3)
+    @test WeekSE(1933, 50) === period(Week, 1933, 50)
+    @test DaySE(1934, 12, 31) === period(Day, 1934, 12, 31)
+end
