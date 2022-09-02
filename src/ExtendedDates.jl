@@ -4,7 +4,7 @@ using Reexport
 @reexport using Dates
 
 import Base: +, -, isfinite, isless, :, print, show, ==, hash, convert, promote_rule, one
-import Dates: Date, year, periodisless, toms, days, _units, periodisless, value, validargs
+import Dates: Date, year, toms, days, _units, value, validargs
 
 using Dates: UTInstant
 
