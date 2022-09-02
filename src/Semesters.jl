@@ -14,8 +14,10 @@ let period = :Semester
     accessor_str = lowercase(period_str)
     # Convenience method for show()
     @eval _units(x::$period) = " " * $accessor_str * (abs(value(x)) == 1 ? "" : "s")
-    # periodisless
-    @eval periodisless(x::$period, y::$period) = value(x) < value(y)
+    if VERSION < v"1.9.0-DEV.1160"
+        # periodisless
+        @eval Dates.periodisless(x::$period, y::$period) = value(x) < value(y)
+    end
     # AbstractString parsing (mainly for IO code)
     @eval $period(x::AbstractString) = $period(Base.parse(Int64, x))
     # The period type is printed when output, thus it already implies its own typeinfo
@@ -43,12 +45,16 @@ let period = :Semester
     end
 end
 
-periodisless(::Period,::Semester) = true
-periodisless(::Year,::Semester) = false
-periodisless(::Quarter,::Semester) = true
-periodisless(::Month,::Semester) = true
-periodisless(::Week,::Semester) = true
-periodisless(::Day,::Semester) = true
+if VERSION < v"1.9.0-DEV.1160"
+    @eval begin
+        Dates.periodisless(::Period,::Semester) = true
+        Dates.periodisless(::Year,::Semester) = false
+        Dates.periodisless(::Quarter,::Semester) = true
+        Dates.periodisless(::Month,::Semester) = true
+        Dates.periodisless(::Week,::Semester) = true
+        Dates.periodisless(::Day,::Semester) = true
+    end
+end
 
 for (n, Small, Large) in [(2, Semester, Year), (2, Quarter, Semester), (6, Month, Semester)]
     @eval function convert(::Type{$Small}, x::$Large)
@@ -62,7 +68,11 @@ end
 (==)(x::Dates.FixedPeriod, y::Semester) = iszero(x) & iszero(y)
 (==)(x::Semester, y::Dates.FixedPeriod) = y == x
 
-otherperiod_seed(x) = iszero(value(x)) ? Dates.zero_or_fixedperiod_seed : Dates.nonzero_otherperiod_seed
+if VERSION < v"1.9.0-DEV.1225"
+    @eval otherperiod_seed(x) = iszero(value(x)) ? Dates.zero_or_fixedperiod_seed : Dates.nonzero_otherperiod_seed
+else
+    using Dates: otherperiod_seed
+end
 hash(x::Semester, h::UInt) = hash(6 * value(x), h + otherperiod_seed(x))
 
 if VERSION < v"1.9.0-DEV.902"

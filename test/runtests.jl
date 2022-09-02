@@ -177,8 +177,14 @@ end
 @testset "Semesters" begin
     @test string(Semester(4)) == "4 semesters"
     @test string(Year(1)+Semester(1)) == "1 year, 1 semester"
-    @test_broken string(Year(1)+Semester(1)+Week(1)) == "1 year, 1 semester, 1 week"
-    @test string(Year(1)+Semester(1)+Week(1)) == "1 year, 1 week, 1 semester"
+    if VERSION < v"1.9.0-DEV.1160"
+        @test_broken string(Year(1)+Semester(1)+Week(1)) == "1 year, 1 semester, 1 week"
+        @test string(Year(1)+Semester(1)+Week(1)) == "1 year, 1 week, 1 semester"
+    else
+        @test string(Year(1)+Semester(1)+Week(1)) == "1 year, 1 semester, 1 week"
+        @test string(Year(1)+Week(1)+Semester(1)) == "1 year, 1 semester, 1 week"
+        @test string(Semester(1)+Year(1)+Week(1)) == "1 year, 1 semester, 1 week"
+    end
 
     @test Semester(3) < Semester(5)
     @test Semester(4) >= Semester(4)
@@ -195,12 +201,14 @@ end
     @test hash(Week(0)) == hash(Semester(0))
     @test hash(Quarter(4)) == hash(Semester(2)) == hash(Year(1))
 
-    for x in [-300, -3, 1, 2, 3, 300, 10^10]
-        for P in [Nanosecond, Microsecond, Millisecond, Second, Minute, Hour, Day, Week, Month, Quarter]
-            @test Dates.periodisless(P(x), Semester(2))
+    if VERSION < v"1.9.0-DEV.1160"
+        for x in [-300, -3, 1, 2, 3, 300, 10^10]
+            for P in [Nanosecond, Microsecond, Millisecond, Second, Minute, Hour, Day, Week, Month, Quarter]
+                @test Dates.periodisless(P(x), Semester(2))
+            end
+            @test Dates.periodisless(Semester(2), Year(x))
+            @test Dates.periodisless(Semester(2), Semester(x)) == (2 < x)
         end
-        @test Dates.periodisless(Semester(2), Year(x))
-        @test Dates.periodisless(Semester(2), Semester(x)) == (2 < x)
     end
 
     @test Dates.toms(Semester(1729)) == Dates.toms(Month(6*1729))
