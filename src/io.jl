@@ -5,33 +5,35 @@ function __init__()
     Dates.CONVERSION_SPECIFIERS['P'] = Period
     Dates.CONVERSION_TRANSLATIONS[RenameMePeriod] = (Year, Period, Month, Day)
     Dates.CONVERSION_DEFAULTS[Period] = 1
-    @eval Dates.default_format(::Type{PeriodSE}) = [
-        dateformat"YYYY" => YearSE,
-        dateformat"YYYY-\Y" => YearSE,
-        dateformat"YYYY-\YP" => YearSE,
-        dateformat"YYYY-\y" => YearSE,
-        dateformat"YYYY-\yP" => YearSE,
-        dateformat"YYYY-PPP" => DaySE,
-        dateformat"YYYY-\DP" => DaySE,
-        dateformat"YYYY-\dP" => DaySE,
-        dateformat"YYYY-\WP" => WeekSE,
-        dateformat"YYYY-\wP" => WeekSE,
-        dateformat"YYYY-\MPP" => MonthSE,
-        dateformat"YYYY-\mPP" => MonthSE,
-        dateformat"YYYY-QP" => QuarterSE,
-        dateformat"YYYY-qP" => QuarterSE,
-        dateformat"YYYY-\SP" => SemesterSE,
-        dateformat"YYYY-\sP" => SemesterSE,
-        dateformat"YYYY-mm-dd" => DaySE,
-    ]
-
-    @eval Dates.default_format(::Type{DaySE}) = dateformat"YYYY-mm-dd"
-    @eval Dates.default_format(::Type{WeekSE}) = dateformat"YYYY-\WP"
-    @eval Dates.default_format(::Type{MonthSE}) = dateformat"YYYY-\MPP"
-    @eval Dates.default_format(::Type{QuarterSE}) = dateformat"YYYY-QP"
-    @eval Dates.default_format(::Type{SemesterSE}) = dateformat"YYYY-\SP"
-    @eval Dates.default_format(::Type{YearSE}) = dateformat"YYYY"
 end
+__init__()
+
+Dates.default_format(::Type{PeriodSE}) = [
+    dateformat"YYYY" => YearSE,
+    dateformat"YYYY-\Y" => YearSE,
+    dateformat"YYYY-\YP" => YearSE,
+    dateformat"YYYY-\y" => YearSE,
+    dateformat"YYYY-\yP" => YearSE,
+    dateformat"YYYY-PPP" => DaySE,
+    dateformat"YYYY-\DP" => DaySE,
+    dateformat"YYYY-\dP" => DaySE,
+    dateformat"YYYY-\WP" => WeekSE,
+    dateformat"YYYY-\wP" => WeekSE,
+    dateformat"YYYY-\MPP" => MonthSE,
+    dateformat"YYYY-\mPP" => MonthSE,
+    dateformat"YYYY-QP" => QuarterSE,
+    dateformat"YYYY-qP" => QuarterSE,
+    dateformat"YYYY-\SP" => SemesterSE,
+    dateformat"YYYY-\sP" => SemesterSE,
+    dateformat"YYYY-mm-dd" => DaySE,
+]
+
+Dates.default_format(::Type{DaySE}) = dateformat"YYYY-mm-dd"
+Dates.default_format(::Type{WeekSE}) = dateformat"YYYY-\WP"
+Dates.default_format(::Type{MonthSE}) = dateformat"YYYY-\MPP"
+Dates.default_format(::Type{QuarterSE}) = dateformat"YYYY-QP"
+Dates.default_format(::Type{SemesterSE}) = dateformat"YYYY-\SP"
+Dates.default_format(::Type{YearSE}) = dateformat"YYYY"
 
 Dates.tryparsenext(d::Dates.DatePart{'P'}, str, i, len) =
     Dates.tryparsenext_base10(str, i, len, Dates.min_width(d), Dates.max_width(d))

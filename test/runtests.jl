@@ -135,7 +135,9 @@ end
 
 @testset "Bulk parsing" begin
     @test parse(Tuple{PeriodSE, DateFormat}, "2022-S2") == (period(Semester, 2022, 2), Dates.default_format(SemesterSE))
-    @test parse(Tuple{PeriodSE, DateFormat}, "2022-s2") == (period(Semester, 2022, 2), dateformat"YYYY-\sP")
+    p, df = parse(Tuple{PeriodSE, DateFormat}, "2022-s2")
+    @test p == period(Semester, 2022,2)
+    @test df.tokens == (dateformat"YYYY-\sP").tokens # TODO revise pending #47541
     @test parse_periods(["1930", "1940", "1950"]) == period.(Year, [1930, 1940, 1950])
     @test parse(Vector{<:PeriodSE}, ["123-7-2", "123-8-2", "124-2-4"]) == [
         period(Day, 123, 7, 2),

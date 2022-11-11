@@ -46,14 +46,12 @@ let period = :Semester
 end
 
 if VERSION < v"1.9.0-DEV.1160"
-    @eval begin
-        Dates.periodisless(::Period,::Semester) = true
-        Dates.periodisless(::Year,::Semester) = false
-        Dates.periodisless(::Quarter,::Semester) = true
-        Dates.periodisless(::Month,::Semester) = true
-        Dates.periodisless(::Week,::Semester) = true
-        Dates.periodisless(::Day,::Semester) = true
-    end
+    Dates.periodisless(::Period,::Semester) = true
+    Dates.periodisless(::Year,::Semester) = false
+    Dates.periodisless(::Quarter,::Semester) = true
+    Dates.periodisless(::Month,::Semester) = true
+    Dates.periodisless(::Week,::Semester) = true
+    Dates.periodisless(::Day,::Semester) = true
 end
 
 for (n, Small, Large) in [(2, Semester, Year), (2, Quarter, Semester), (6, Month, Semester)]
