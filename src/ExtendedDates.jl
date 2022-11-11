@@ -129,6 +129,7 @@ const YearSE = UTInstant{Year}
 const PeriodSE = UTInstant{<:Period}
 
 Base.show(io::IO, ::MIME"text/plain", p::PeriodSE) = Dates.format(io, p)
+Base.print(io::IO, p::PeriodSE) = Dates.format(io, p)
 
 const PeriodsSinceEpoch = Union{PeriodSE, Int64} # TODO rename me
 # End TODO move me

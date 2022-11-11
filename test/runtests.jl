@@ -57,6 +57,16 @@ end
 
 # Print/string/display/show
 @testset "string" begin
+    @test string(year_2022) == "2022"
+    @test string(second_quarter_of_200) == "0200-Q2"
+    @test string(third_week_of_1935) == "1935-W3"
+    @test string(hundredth_day_of_year_54620) == "54620-04-09"
+    @test string(second_semester_of_2022) == "2022-S2"
+    @test string(undated_12) == "12"
+    @test string(period(Month, 1729, 3)) == "1729-M03"
+    @test string(period(Month, 1729, 12)) == "1729-M12"
+end
+@testset "format" begin
     @test Dates.format(year_2022) == "2022"
     @test Dates.format(second_quarter_of_200) == "0200-Q2"
     @test Dates.format(third_week_of_1935) == "1935-W3"
