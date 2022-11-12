@@ -59,7 +59,7 @@ for (n, Small, Large) in [(2, Semester, Year), (2, Quarter, Semester), (6, Month
         $(typemin(Int64) ÷ n) ≤ value(x) ≤ $(typemax(Int64) ÷ n) || throw(InexactError(:convert, $Small, x))
         $Small(value(x) * $n)
     end
-    @eval convert(::Type{$Large}, x::$Small) = $Large(divexact(value(x), $n))
+    @eval convert(::Type{$Large}, x::$Small) = $Large(Dates.divexact(value(x), $n))
     @eval promote_rule(::Type{$Large}, ::Type{$Small}) = $Small
 end
 

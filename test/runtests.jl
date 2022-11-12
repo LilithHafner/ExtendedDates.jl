@@ -33,12 +33,12 @@ end
 end
 
 @testset "frequency" begin
-    @test frequency(year_2022) === Year(1)
-    @test frequency(second_quarter_of_200) === Quarter(1)
-    @test frequency(third_week_of_1935) === Week(1)
-    @test frequency(hundredth_day_of_year_54620) === Day(1)
-    @test frequency(second_semester_of_2022) === Semester(1)
-    @test frequency(undated_12) === Int64(1)
+    @test Year(1) === frequency(year_2022) === frequency(typeof(year_2022))
+    @test Quarter(1) === frequency(second_quarter_of_200) === frequency(typeof(second_quarter_of_200))
+    @test Week(1) === frequency(third_week_of_1935) === frequency(typeof(third_week_of_1935))
+    @test Day(1) === frequency(hundredth_day_of_year_54620) === frequency(typeof(hundredth_day_of_year_54620))
+    @test Semester(1) === frequency(second_semester_of_2022) === frequency(typeof(second_semester_of_2022))
+    @test Int64(1) === frequency(undated_12) === frequency(typeof(undated_12))
 end
 
 @testset "one" begin
@@ -178,6 +178,12 @@ end
     ]
 end
 
+@testset "Custom formatting" begin
+    @test Dates.format(period(Year, 2022), dateformat"YYYY") == "2022"
+    @test Dates.format(period(Quarter, 2022, 2), dateformat"Q\uart\er #P of th\e \y\ear yy") == "Quarter #2 of the year 22"
+    @test Dates.format(period(Week, 2022, 50), "W\\e\\ek #P of th\\e \\y\\ear YYYYYY") == "Week #50 of the year 002022"
+end
+
 @testset "day consistency" begin
     for date in Date(-2):Day(1):Date(5)
         year, month, day = yearmonthday(date)
@@ -277,6 +283,21 @@ end
         @test t + Month(7) - Semester(1) == t + Month(1)
         @test Semester(2) + t == t + Year(1)
     end
+
+    @test convert(Month, Semester(1)) === Month(6)
+    @test convert(Year, Semester(2)) === Year(1)
+    @test convert(Quarter, Semester(2)) === Quarter(4)
+
+    @test promote_rule(Quarter, Semester) === promote_rule(Quarter, Year) === Union{}
+    @test promote_rule(Semester, Quarter) === promote_rule(Year, Quarter) === Quarter
+    @test promote_rule(Year, Semester) === Semester !== promote_rule(Year, Month) === Month
+    @test promote_rule(Semester, Year) === promote_rule(Month, Year) === Union{}
+
+    @test Quarter(Date("2022-01-12")) === Quarter(1)
+    @test Semester(Date("2022-11-12")) === Semester(2)
+    @test Semester(Date("2022-01-12")) === Semester(1)
+    @test Semester(DateTime("2022-11-12T19:15:02.015")) === Semester(2)
+    @test Semester(DateTime("2022-01-12T19:15:02.015")) === Semester(1)
 end
 
 @testset "short constructors" begin
