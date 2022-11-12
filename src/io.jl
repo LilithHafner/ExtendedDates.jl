@@ -106,6 +106,6 @@ function Dates.format(dt::PeriodSE, fmt::DateFormat=Dates.default_format(typeof(
     String(io.data[1:io.ptr - 1])
 end
 
-function Dates.format(dt::PeriodSE, f::AbstractString; locale::Dates.Locale=ENGLISH)
+function Dates.format(dt::PeriodSE, f::AbstractString; locale::Dates.Locale=Dates.ENGLISH)
     Dates.format(dt, DateFormat(f, locale))
 end
