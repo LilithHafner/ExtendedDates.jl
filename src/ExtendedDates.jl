@@ -3,7 +3,7 @@ module ExtendedDates
 using Reexport
 @reexport using Dates
 
-import Base: +, -, isfinite, isless, :, print, show, ==, hash, convert, promote_rule, one
+import Base: +, -, isfinite, isless, <, <=, :, print, show, ==, hash, convert, promote_rule, one
 import Dates: Date, year, toms, days, _units, value, validargs
 
 using Dates: UTInstant
@@ -77,10 +77,12 @@ function validargs(P::Type{<:Period}, y::Int64, p::Int64) # TODO inefficient
 end
 
 # Conversion to Date to calculate year and subperiod
-Date(p::UTInstant{P}) where P <: Period = EPOCH + p.periods - oneunit(P)
+Date(p::UTInstant{P}) where P <: Period = EPOCH + p.periods - frequency(p)
 
 # Fallback accessors for frequency, year, subperiod
-const frequency = one
+frequency(x) = oneunit(x)
+frequency(::UTInstant{P}) where P = P(1)
+frequency(::Type{UTInstant{P}}) where P = P(1)
 """
     year(::UTInstant{<:Period})
 
@@ -112,8 +114,11 @@ year(p::UTInstant{<:YearPeriod}) = fld(p - oneunit(p), Year(1)) + year(EPOCH)
 subperiod(p::UTInstant{<:YearPeriod}) = (rem(p - oneunit(p), Year(1), RoundDown)) ÷ frequency(p) + 1
 
 #TODO move me:
-one(p::UTInstant{<:Period}) = oneunit(p.periods)
-isless(a::UTInstant, b::UTInstant) = isless(a.periods, b.periods)
+one(p::UTInstant{<:Period}) = one(p.periods)
+isless(a::UTInstant, b::UTInstant) = isless(a.periods-frequency(a), b.periods-frequency(b))
+<(a::UTInstant, b::UTInstant) = a.periods <= b.periods-frequency(b)
+==(a::UTInstant, b::UTInstant) = a.periods-frequency(a) == b.periods-frequency(b)
+<=(a::UTInstant, b::UTInstant) = !(b < a)
 +(i::UTInstant{P}, p::P) where P <: Period = UTInstant(i.periods + p)
 -(i::UTInstant{P}, p::P) where P <: Period = UTInstant(i.periods - p)
 isfinite(i::UTInstant{P}) where P <: Period = isfinite(i.periods) # true
@@ -137,7 +142,7 @@ const PeriodsSinceEpoch = Union{PeriodSE, Int64} # TODO rename me
 const Undated = Int64
 
 # Convenience function for range of periods
-(:)(start::UTInstant{P}, stop::UTInstant{P}) where P <: Period = start:oneunit(P):stop
+(:)(start::UTInstant{P}, stop::UTInstant{P}) where P <: Period = start:frequency(P):stop
 
 # So that Day periods behave like Dates
 Dates.month(d::UTInstant{Day}) = month(Date(d))

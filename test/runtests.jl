@@ -33,12 +33,34 @@ end
 end
 
 @testset "frequency" begin
-    @test frequency(year_2022) == Year(1)
-    @test frequency(second_quarter_of_200) == Quarter(1)
-    @test frequency(third_week_of_1935) == Week(1)
-    @test frequency(hundredth_day_of_year_54620) == Day(1)
-    @test frequency(second_semester_of_2022) == Semester(1)
+    @test frequency(year_2022) === Year(1)
+    @test frequency(second_quarter_of_200) === Quarter(1)
+    @test frequency(third_week_of_1935) === Week(1)
+    @test frequency(hundredth_day_of_year_54620) === Day(1)
+    @test frequency(second_semester_of_2022) === Semester(1)
     @test frequency(undated_12) === Int64(1)
+end
+
+@testset "one" begin
+    @test one(year_2022) === one(second_quarter_of_200) === one(third_week_of_1935) ===
+          one(hundredth_day_of_year_54620) === one(second_semester_of_2022) ===
+          one(undated_12) === 1
+end
+
+@testset "oneunit" begin
+    @test oneunit(year_2022) === period(Year, 1, 1)
+    @test oneunit(second_quarter_of_200) === period(Quarter, 1, 1)
+    @test oneunit(third_week_of_1935) === period(Week, 1, 1)
+    @test oneunit(hundredth_day_of_year_54620) === period(Day, 1, 1)
+    @test oneunit(second_semester_of_2022) === period(Semester, 1, 1)
+    @test oneunit(undated_12) === 1
+
+    @test typeof(oneunit(year_2022)) === typeof(year_2022)
+    @test typeof(oneunit(second_quarter_of_200)) === typeof(second_quarter_of_200)
+    @test typeof(oneunit(third_week_of_1935)) === typeof(third_week_of_1935)
+    @test typeof(oneunit(hundredth_day_of_year_54620)) === typeof(hundredth_day_of_year_54620)
+    @test typeof(oneunit(second_semester_of_2022)) === typeof(second_semester_of_2022)
+    @test typeof(oneunit(undated_12)) == typeof(undated_12)
 end
 
 # Range operations on dates
@@ -270,4 +292,78 @@ end
     @test show(buf, MIME"text/plain"(), DaySE(1952, 4, 17)) === nothing
     @test show(buf, MIME"text/plain"(), WeekSE(1952, 45)) === nothing
     @test String(take!(buf)) == "1952-04-17" * "1952-W45"
+end
+
+@testset "ordering and equality" begin
+    periods = [period.(Month, 2020, 1:5); period.(Quarter, 2020, 1:3); period.(Year, 2019:2021)]
+    @test !issorted(periods)
+    sort!(periods)
+    @test issorted(periods)
+    @test periods == parse.(PeriodSE, ["2019", "2020-M01", "2020-Q1", "2020", "2020-M02", "2020-M03", "2020-M04", "2020-Q2", "2020-M05", "2020-Q3", "2021"])
+    tperiods = reshape(periods, 1, length(periods))
+
+    @test (periods .=== tperiods) == Bool[
+        1  0  0  0  0  0  0  0  0  0  0
+        0  1  0  0  0  0  0  0  0  0  0
+        0  0  1  0  0  0  0  0  0  0  0
+        0  0  0  1  0  0  0  0  0  0  0
+        0  0  0  0  1  0  0  0  0  0  0
+        0  0  0  0  0  1  0  0  0  0  0
+        0  0  0  0  0  0  1  0  0  0  0
+        0  0  0  0  0  0  0  1  0  0  0
+        0  0  0  0  0  0  0  0  1  0  0
+        0  0  0  0  0  0  0  0  0  1  0
+        0  0  0  0  0  0  0  0  0  0  1
+    ]
+
+    @test (periods .== tperiods) == Bool[
+        1  0  0  0  0  0  0  0  0  0  0
+        0  1  1  1  0  0  0  0  0  0  0
+        0  1  1  1  0  0  0  0  0  0  0
+        0  1  1  1  0  0  0  0  0  0  0
+        0  0  0  0  1  0  0  0  0  0  0
+        0  0  0  0  0  1  0  0  0  0  0
+        0  0  0  0  0  0  1  1  0  0  0
+        0  0  0  0  0  0  1  1  0  0  0
+        0  0  0  0  0  0  0  0  1  0  0
+        0  0  0  0  0  0  0  0  0  1  0
+        0  0  0  0  0  0  0  0  0  0  1
+    ]
+
+    @test (isless.(periods, tperiods)) == Bool[
+        0  1  1  1  1  1  1  1  1  1  1
+        0  0  0  0  1  1  1  1  1  1  1
+        0  0  0  0  1  1  1  1  1  1  1
+        0  0  0  0  1  1  1  1  1  1  1
+        0  0  0  0  0  1  1  1  1  1  1
+        0  0  0  0  0  0  1  1  1  1  1
+        0  0  0  0  0  0  0  0  1  1  1
+        0  0  0  0  0  0  0  0  1  1  1
+        0  0  0  0  0  0  0  0  0  1  1
+        0  0  0  0  0  0  0  0  0  0  1
+        0  0  0  0  0  0  0  0  0  0  0
+    ]
+
+    @test all((periods .== tperiods) .⊻ isless.(periods, tperiods) .⊻ isless.(tperiods, periods))
+
+    @test (periods .< tperiods) == Bool[
+        0  1  1  1  1  1  1  1  1  1  1
+        0  0  0  0  1  1  1  1  1  1  1
+        0  0  0  0  0  0  1  1  1  1  1
+        0  0  0  0  0  0  0  0  0  0  1
+        0  0  0  0  0  1  1  1  1  1  1
+        0  0  0  0  0  0  1  1  1  1  1
+        0  0  0  0  0  0  0  0  1  1  1
+        0  0  0  0  0  0  0  0  0  1  1
+        0  0  0  0  0  0  0  0  0  1  1
+        0  0  0  0  0  0  0  0  0  0  1
+        0  0  0  0  0  0  0  0  0  0  0
+    ] == (tperiods .> periods) == (!).(periods .>= tperiods) == (!).(tperiods .<= periods)
+
+    @test period(Day, 2000, 1) < period(Week, 2000, 1)
+    @test period(Day, 2000, 1) != period(Week, 2000, 1)
+
+    @test period(Day, 2001, 1) < period(Week, 2001, 2)
+    @test period(Day, 2001, 1) == period(Week, 2001, 1)
+    @test !(period(Day, 2001, 1) < period(Week, 2001, 1))
 end
