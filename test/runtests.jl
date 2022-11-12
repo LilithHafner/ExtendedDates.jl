@@ -298,6 +298,13 @@ end
     @test Semester(Date("2022-01-12")) === Semester(1)
     @test Semester(DateTime("2022-11-12T19:15:02.015")) === Semester(2)
     @test Semester(DateTime("2022-01-12T19:15:02.015")) === Semester(1)
+
+    @test string(Semester(1)) == "1 semester"
+    @test string(Semester(1729)) == "1729 semesters"
+    @test string(Semester.(1:4)) == "[Semester(1), Semester(2), Semester(3), Semester(4)]"
+    @test string(Quarter(1)) == "1 quarter"
+    @test string(Quarter(1729)) == "1729 quarters"
+    @test string(Quarter.(1:4)) == "[Quarter(1), Quarter(2), Quarter(3), Quarter(4)]"
 end
 
 @testset "short constructors" begin
