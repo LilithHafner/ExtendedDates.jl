@@ -99,12 +99,19 @@ end
     @test Dates.format(period(Month, 1729, 12)) == "1729-M12"
 end
 @testset "repr" begin
-    @test repr(year_2022) == "Dates.UTInstant{Year}(Year(2022))"
-    @test repr(second_quarter_of_200) == "Dates.UTInstant{Quarter}(Quarter(798))"
-    @test repr(third_week_of_1935) == "Dates.UTInstant{Week}(Week(100915))"
-    @test repr(hundredth_day_of_year_54620) == "Dates.UTInstant{Day}(Day(19949279))"
-    @test repr(second_semester_of_2022) == "Dates.UTInstant{Semester}(Semester(4044))"
+    @test repr(year_2022) == "YearSE(\"2022\")"
+    @test repr(second_quarter_of_200) == "QuarterSE(\"0200-Q2\")"
+    @test repr(third_week_of_1935) == "WeekSE(\"1935-W3\")"
+    @test repr(hundredth_day_of_year_54620) == "DaySE(\"54620-04-09\")"
+    @test repr(second_semester_of_2022) == "SemesterSE(\"2022-S2\")"
     @test repr(undated_12) == "12"
+
+    @test year_2022 === eval(Meta.parse(repr(year_2022)))
+    @test second_quarter_of_200 === eval(Meta.parse(repr(second_quarter_of_200)))
+    @test third_week_of_1935 === eval(Meta.parse(repr(third_week_of_1935)))
+    @test hundredth_day_of_year_54620 === eval(Meta.parse(repr(hundredth_day_of_year_54620)))
+    @test second_semester_of_2022 === eval(Meta.parse(repr(second_semester_of_2022)))
+    @test undated_12 === eval(Meta.parse(repr(undated_12)))
 end
 
 # Efficient (no overhead over Int64)
@@ -176,6 +183,10 @@ end
         period(Day, 123, 8, 2),
         period(Day, 124, 2, 4)
     ]
+end
+
+@testset "Short name parsing" begin
+    @test MonthSE("2022-M4") == PeriodSE("2022-M4") == period(Month, 2022, 4)
 end
 
 @testset "Custom formatting" begin

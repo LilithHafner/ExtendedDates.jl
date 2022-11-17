@@ -133,8 +133,12 @@ const SemesterSE = UTInstant{Semester}
 const YearSE = UTInstant{Year}
 const PeriodSE = UTInstant{<:Period}
 
-Base.show(io::IO, ::MIME"text/plain", p::PeriodSE) = Dates.format(io, p)
+UTInstant{P}(s::AbstractString) where P <: Period = parse(UTInstant{P}, s)
+UTInstant(s::AbstractString) = parse(UTInstant, s)
+
 Base.print(io::IO, p::PeriodSE) = Dates.format(io, p)
+Base.show(io::IO, ::MIME"text/plain", p::PeriodSE) = print(io, p)
+Base.show(io::IO, p::UTInstant{P}) where P <: Period = print(io, P, "SE(\"", p, "\")")
 
 const PeriodsSinceEpoch = Union{PeriodSE, Int64} # TODO rename me
 # End TODO move me
