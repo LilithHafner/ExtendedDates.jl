@@ -7,6 +7,7 @@ import Base: +, -, isfinite, isless, <, <=, :, print, show, ==, hash, convert, p
 import Dates: Date, year, toms, days, _units, value, validargs
 
 using Dates: UTInstant
+using RecipesBase: RecipesBase, @recipe
 
 export period, frequency, subperiod, Undated,
     parse_periods,
@@ -153,5 +154,8 @@ Dates.month(d::UTInstant{Day}) = month(Date(d))
 Dates.day(d::UTInstant{Day}) = day(Date(d))
 
 include("io.jl")
+
+@recipe f(::Type{Dates.UTInstant{P}}, t::Dates.UTInstant{P}) where P <: Period =
+    (t -> Dates.value(t), t -> Dates.format(Dates.UTInstant(P(t))))
 
 end

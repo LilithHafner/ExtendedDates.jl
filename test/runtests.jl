@@ -1,6 +1,7 @@
 using ExtendedDates
 using Test
 using InteractiveUtils: subtypes
+using Plots
 
 ### Represent periods (time intervals) of different frequencies: year 2022, 2nd quarter of 200, …
 ### Constructors with (year, subperiod, frequency)
@@ -405,4 +406,9 @@ end
     @test period(Day, 2001, 1) < period(Week, 2001, 2)
     @test period(Day, 2001, 1) == period(Week, 2001, 1)
     @test !(period(Day, 2001, 1) < period(Week, 2001, 1))
+end
+
+@testset "Plots" begin
+    plot(period.(Day, 2020, 1:10))
+    plot(period.(Week, 2020, 1:10), period.(Month, 2020, 1:10))
 end
